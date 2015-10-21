@@ -1,0 +1,7 @@
+These might be helpful links in figuring out how to write a piece-wise linear constraint.
+
+http://ampl.com/BOOK/CHAPTERS/20-piecewise.pdf
+
+http://math.stackexchange.com/questions/932471/multivariate-piecewise-linear-equality-constraint-in-optimization-problem
+
+http://orinanobworld.blogspot.fr/2010/10/piecewise-linear-functions-in-math.html
