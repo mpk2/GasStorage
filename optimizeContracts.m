@@ -43,7 +43,7 @@ function [d,e] = optimizeContracts(n, F, I, W, q, p, c, V0, Vn, L)
 
 % Define g to be a constant number of mmbtu per day associated with each
 % forward contract
-g = 1e5;
+g = 1e4;
 
 % Number of days in each month!
 dpm = [31 28 31 30 31 30 31 31 30 31 30 31];
@@ -75,43 +75,42 @@ c = [F-g*Q; -F-g*P];
 % cumsum(dpm) and find first where >= s, take k=index-1
 % then j=s-sum(dpm(1:k))
 %
-% v(s) is volume for day s
+% v(s) is volume at beginning of day s
 % length(v) = sum(dpm)
 
 % In terms of decision variables, then (j>=1)
-% v(s) = v(1) + g*( sum( (e(1:k-1)-d(1:k-1)) * dpm(1:k-1) ) + (e(k)-d(k))*j - (e(1)-d(1)) )
-% v(1) = V0
+% v(s) = g*( sum( (e(1:k-1)-d(1:k-1)) * dpm(1:k-1) ) + (e(k)-d(k))*j - (e(1)-d(1)) )
 
 A = [];
 b = [];
 
-% Inventory minimum:
-% -L(k) >= -v(s) where s is defined as above, j=1, k=1:n
-for k=1:n
-    
+% Inventory minimum: THIS CONSTRAINT ISN'T RIGHT YET
+% -L(k) >= -v(s) where s is defined as above, j=1, k=2:n
+for k=2:n
     % Preallocate an empty row for this constraint
-    A(end+1,:) = zeros(1,n);
+    A(end+1,:) = zeros(1,2*n);
     
     % We want to limit the sth volume, which is equivalent to limiting
     % contracts
-    A(end, 1:k-1) = dpm(1:k-1);
-    A(end, n+1:2*k-1) = -dpm(1:k-1);
+    A(end, 1:k-1) = -dpm(1:k-1);
+    A(end, n+1:n+k-1) = dpm(1:k-1);
     
     % Add in the current day worth of injection/withdrawal (first day of
     % the month)
-    A(end, k) = 1;
-    A(end, 2*k) = 1;
+    A(end, k) = -1;
+    A(end, n+k) = 1;
     
     % Make sure not to double count first day of year (s=1)
-    A(end, 1) = A(end,1) - 1;
-    A(end, n+1) = A(end,1) - 1;
-    
-    % Negate everything since we are inverting the constraint
-    A(end,:) = - A(end,:);
+    A(end, 1) = A(end,1) - sign(A(end,1))* 1;
+    A(end, n+1) = A(end,n+1) - sign(A(end,n+1))* 1;
     
     % Limit this to inventory minimum
-    b(end+1) = -(L(k)-V0)/g;
+    b(end+1) = L(k)/g;
 end
+
+% Negate everything since we are inverting the constraint
+A = -A;
+b = -b;
 
 
 
@@ -126,7 +125,7 @@ end
 for k = 1:n
   
     % Preallocate an empty row for this injection constraint
-    A(end+1,:) = zeros(1,n);
+    A(end+1,:) = zeros(1,2*n);
     
     % Subtract the delivered contracts from the exercised contracts for
     % this month
@@ -134,11 +133,11 @@ for k = 1:n
     A(end,n+k) = 1;
     
     % Constrain to the constant daily injection limit for that month
-    b(end+1) = I(k);
+    b(end+1) = I(k)/g;
     
     
     % Preallocate an empty row for this withdrawal constraint
-    A(end+1,:) = zeros(1,n);
+    A(end+1,:) = zeros(1,2*n);
     
     % Subtract the exercised contracts from the delivered contracts for
     % this month
@@ -146,8 +145,9 @@ for k = 1:n
     A(end,n+k) = -1;
     
     % Constrain to the constant daily withdrawal limit for that month
-    b(end+1) = W(k);
+    b(end+1) = W(k)/g;
 end
+
 
 % Set up equality constraints
 Aeq = [];
@@ -157,13 +157,8 @@ beq = [];
 % Start: v(1) = V0
 % End: v(sum(dpm(1:n))) = Vn
 
-% The volume v(1) for k=1, j=1 should be V0
-% V0 = v(1) + g*((e(1)-d(1))*1 - (e(1)-d(1)) ) = v(1)
-Aeq(end+1,:) = zeros(1:n);
-beq(end+1) = V0; 
-
 % Preallocate an empty row for this constraint
-Aeq(end+1,:) = zeros(1,n);
+Aeq(end+1,:) = zeros(1,2*n);
 
 % We want to set the last volume to Vn, so add up all contracts in first
 % previous full months
@@ -178,18 +173,26 @@ Aeq(end, 2*n) = dpm(n);
 Aeq(end, 1) = Aeq(end,1) - 1;
 Aeq(end, n+1) = Aeq(end,1) - 1;
 
-% Limit this to inventory maximum
+% By doing it this way, we ensure that both boundary conditions are
+% accounted for
 beq(end+1) = (Vn-V0)/g;
 
+A
+b
+c
+Aeq
+beq
 % Optimise, setting the lower bound to all zeros and upper bound to inf
-[x, fval] = linprog(c, A, b, Aeq, beq, [d e], inf*ones(1,n));
+[x, fval] = intlinprog(c, 1:2*n, A, b, Aeq, beq, [d e], inf*ones(1,2*n));
 
 % Break up into d and e
 d(:) = x(1:n);
 e(:) = x(n+1:2*n);
 
 % Display the solution vector and the evaluation for debugging 
+disp('x:')
 disp(x);
+disp('f(x):');
 disp(fval);
 
 end
