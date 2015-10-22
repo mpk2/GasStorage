@@ -63,7 +63,7 @@ Q = q(F) + c;
 % Objective vector -- this makes it so we optimise F*(d-e)-g*(Q*d-P*e)
 % In other words, we optimise (gas revenue - gas expenditure - gas
 % injection/withdrawal costs)
-c = [F-g*Q; -F-g*P];
+c = [F-g*Q -F-g*P];
 
 % This is in general helpful for calculations, but it's more helpful
 % perhaps when we need to move into piecewise
@@ -86,7 +86,7 @@ b = [];
 
 % Inventory minimum: THIS CONSTRAINT ISN'T RIGHT YET
 % -L(k) >= -v(s) where s is defined as above, j=1, k=2:n
-for k=2:n
+for k=2:n-1
     % Preallocate an empty row for this constraint
     A(end+1,:) = zeros(1,2*n);
     
@@ -100,16 +100,12 @@ for k=2:n
     A(end, k) = -1;
     A(end, n+k) = 1;
     
-    % Make sure not to double count first day of year (s=1)
-    A(end, 1) = A(end,1) - sign(A(end,1))* 1;
-    A(end, n+1) = A(end,n+1) - sign(A(end,n+1))* 1;
-    
     % Limit this to inventory minimum
-    b(end+1) = L(k)/g;
+    b(end+1) = (L(k)-v0)/g;
 end
 
 % Negate everything since we are inverting the constraint
-A = -A;
+A = -A
 b = -b;
 
 
@@ -167,11 +163,7 @@ Aeq(end, n+1:2*n-1) = -dpm(1:k-1);
 
 % Add in the total days in the month worth of injection/withdrawal
 Aeq(end, n) = dpm(n);
-Aeq(end, 2*n) = dpm(n);
-
-% Make sure not to double count first day of year (s=1)
-Aeq(end, 1) = Aeq(end,1) - 1;
-Aeq(end, n+1) = Aeq(end,1) - 1;
+Aeq(end, 2*n) = -dpm(n);
 
 % By doing it this way, we ensure that both boundary conditions are
 % accounted for
@@ -183,7 +175,7 @@ c
 Aeq
 beq
 % Optimise, setting the lower bound to all zeros and upper bound to inf
-[x, fval] = intlinprog(c, 1:2*n, A, b, Aeq, beq, [d e], inf*ones(1,2*n));
+[x, fval] = intlinprog(-c, 1:2*n, A, b, Aeq, beq, [d e], inf*ones(1,2*n));
 
 % Break up into d and e
 d(:) = x(1:n);
