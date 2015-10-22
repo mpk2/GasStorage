@@ -101,7 +101,7 @@ for k=2:n-1
     A(end, n+k) = 1;
     
     % Limit this to inventory minimum
-    b(end+1) = (L(k)-v0)/g;
+    b(end+1) = (L(k)-V0)/g;
 end
 
 % Negate everything since we are inverting the constraint
