@@ -5,3 +5,11 @@ http://ampl.com/BOOK/CHAPTERS/20-piecewise.pdf
 http://math.stackexchange.com/questions/932471/multivariate-piecewise-linear-equality-constraint-in-optimization-problem
 
 http://orinanobworld.blogspot.fr/2010/10/piecewise-linear-functions-in-math.html
+
+Some academic stuff:
+
+http://pubsonline.informs.org/doi/abs/10.1287/opre.1090.0768
+
+http://papers.ssrn.com/sol3/papers.cfm?abstract_id=1288024
+
+http://www.sciencedirect.com/science/article/pii/0305048396000254

@@ -41,6 +41,8 @@
 %       month k (in other words, contracts we sell)
 function [d,e] = optimizeContracts(n, F, I, W, q, p, c, V0, Vn, L)
 
+format short
+
 % Define g to be a constant number of mmbtu per day associated with each
 % forward contract
 g = 1e4;
@@ -84,7 +86,7 @@ c = [F-g*Q -F-g*P];
 A = [];
 b = [];
 
-% Inventory minimum: THIS CONSTRAINT ISN'T RIGHT YET
+% Inventory minimum:
 % -L(k) >= -v(s) where s is defined as above, j=1, k=2:n
 for k=2:n-1
     % Preallocate an empty row for this constraint
@@ -105,7 +107,7 @@ for k=2:n-1
 end
 
 % Negate everything since we are inverting the constraint
-A = -A
+A = -A;
 b = -b;
 
 
@@ -169,11 +171,6 @@ Aeq(end, 2*n) = -dpm(n);
 % accounted for
 beq(end+1) = (Vn-V0)/g;
 
-A
-b
-c
-Aeq
-beq
 % Optimise, setting the lower bound to all zeros and upper bound to inf
 [x, fval] = intlinprog(-c, 1:2*n, A, b, Aeq, beq, [d e], inf*ones(1,2*n));
 
@@ -183,8 +180,8 @@ e(:) = x(n+1:2*n);
 
 % Display the solution vector and the evaluation for debugging 
 disp('x:')
-disp(x);
+disp(num2str(x,'%.0f'));
 disp('f(x):');
-disp(fval);
+disp(num2str(-fval,'%.0f'));
 
 end
