@@ -39,7 +39,7 @@
 %   e:  a vector of length n with positive integer values where d(k) for 
 %       1 <= k <= n indicated the number of contracts delivered by us in
 %       month k (in other words, contracts we sell)
-function [d,e] = optimizeContracts(n, F, I, W, q, p, c, V0, Vn, L)
+function [d,e,fval] = optimizeContracts(n, F, I, W, q, p, c, V0, Vn, L)
 
 format short
 
@@ -88,7 +88,7 @@ b = [];
 
 % Inventory minimum:
 % -L(k) >= -v(s) where s is defined as above, j=1, k=2:n
-for k=2:n-1
+for k=2:n
     % Preallocate an empty row for this constraint
     A(end+1,:) = zeros(1,2*n);
     
@@ -103,7 +103,7 @@ for k=2:n-1
     A(end, n+k) = 1;
     
     % Limit this to inventory minimum
-    b(end+1) = (L(k)-V0)/g;
+    b(end+1) = (L(k-1)-V0)/g;
 end
 
 % Negate everything since we are inverting the constraint
@@ -116,7 +116,7 @@ b = -b;
 % Max injection:  v(s+1)-v(s) <= i(v(s)) or g*( e(k)-d(k) ) <= I(v(s))
 % Max withdrawal: v(s)-v(s+1) <= w(v(s)) or g*( d(k)-e(k) ) <= W(v(s))
 % 
-% v(s) = v(1) + g*( sum( (e(1:k-1)-d(1:k-1)) * dpm(1:k-1) ) + (e(k)-d(k))*j - (e(1)-d(1)) )
+% v(s) = g*( sum( (e(1:k-1)-d(1:k-1)) * dpm(1:k-1) ) + (e(k)-d(k))*j )
 % v(s+1) = v(s) + g*( e(k)-d(k) )
 
 % Go through all the months and set injection/withdrawal constraints
@@ -158,30 +158,27 @@ beq = [];
 % Preallocate an empty row for this constraint
 Aeq(end+1,:) = zeros(1,2*n);
 
-% We want to set the last volume to Vn, so add up all contracts in first
-% previous full months
-Aeq(end, 1:n-1) = dpm(1:k-1);
-Aeq(end, n+1:2*n-1) = -dpm(1:k-1);
-
-% Add in the total days in the month worth of injection/withdrawal
-Aeq(end, n) = dpm(n);
-Aeq(end, 2*n) = -dpm(n);
+% Add up all net contract-days
+Aeq(end, 1:n) = -dpm(1:n);
+Aeq(end, n+1:2*n) = dpm(1:n);
 
 % By doing it this way, we ensure that both boundary conditions are
 % accounted for
 beq(end+1) = (Vn-V0)/g;
 
 % Optimise, setting the lower bound to all zeros and upper bound to inf
-[x, fval] = intlinprog(-c, 1:2*n, A, b, Aeq, beq, [d e], inf*ones(1,2*n));
+%[x fval] = intlinprog(-c, 1:2*n, A, b, Aeq, beq, [d e], inf*ones(1,2*n));
+[x fval] = linprog(-c, A, b, Aeq, beq, [d e], inf*ones(1,2*n));
 
-% Break up into d and e
-d(:) = x(1:n);
-e(:) = x(n+1:2*n);
+if(~isempty(x))
+    % Break up into d and e
+    d(:) = x(1:n);
+    e(:) = x(n+1:2*n);
+else
+    d=[];
+    e=[];
+end
 
-% Display the solution vector and the evaluation for debugging 
-disp('x:')
-disp(num2str(x,'%.0f'));
-disp('f(x):');
-disp(num2str(-fval,'%.0f'));
+fval = -fval;
 
 end
