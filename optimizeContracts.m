@@ -6,7 +6,7 @@
 %   
 %   n:  the number of months over which to optimise the contracts
 %
-%   f:  a vector of length n representing the current forward curve for
+%   F:  a vector of length n representing the current forward curve for
 %       each month k such that f(k) = forward contract price for month k
 %       1 <= k <= n
 %
