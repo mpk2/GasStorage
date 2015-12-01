@@ -168,7 +168,7 @@ beq(end+1) = (Vn-V0)/g;
 
 % Optimise, setting the lower bound to all zeros and upper bound to inf
 %[x fval] = intlinprog(-c, 1:2*n, A, b, Aeq, beq, [d e], inf*ones(1,2*n));
-[x fval] = linprog(-c, A, b, Aeq, beq, [d e], inf*ones(1,2*n));
+[x, fval] = linprog(-c, A, b, Aeq, beq, [d e], inf*ones(1,2*n));
 
 if(~isempty(x))
     % Break up into d and e
