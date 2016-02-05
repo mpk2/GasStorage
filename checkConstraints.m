@@ -37,7 +37,7 @@ for j = 1:length(piecewiseConstraints)
     b = y1 - m*x1; 
     
     % valid if the y-value of the input point, x, is below the constraint.
-    valid = x{j}(2) <= m*x{j}/(1) + b;
+    valid = x{j}(2) <= m*x{j}(1) + b;
     
     if ~valid 
         invalidConstraint = j; 
