@@ -47,24 +47,36 @@ function [d,e,fval] = optimizeMultiDay(n, F, I, W, q, p, c, V0, Vn, L)
 
 format short
 
-s =[];
-fval = 0;
+g = 1e4;
+s =zeros(1,2*n);
+fval = [0];
 
 for i=1:size(F,1)
     f = F(i,1:n);
-    [d,e,fval] = optimizeContracts(n, f, I, W, q, p, c, V0, Vn, L);
-    
-    % Calculate c for this
+    [d,e,fvalue] = optimizeContracts(n, f, I, W, q, p, c, V0, Vn, L);
+  
+    % Calculate C for this
     P = p(f) + c;
     Q = q(f) + c;
-    c = [f-g*Q -f-g*P];
+    C = [f-g*Q -f-g*P];
+   
+    marginal = C*([d; e] - sum(s(1:i-1,:),1)')
     
-    % Add this amount to profit so far
-    s(i,:) = [d e] - sum(s(1:i-1,:));
-    fval = fval + c*s(i,:)';
+    % See if the change would be a positive improvement
+    if(marginal > 0)
+        % If it is, add it
+        s(i,:) = [d; e]' - sum(s(1:i-1,:),1);
+    else
+        s(i,:) = zeros(size([d;e]'));
+    end
+        
+    % Set fval to be the most updated value of the contracts we have
+    fval(i+1) = fval(i) + marginal
+    
 end
 
-d = s(:,1:(end/2));
-e = s(:,(end/2):end);
+aggregate = sum(s,1)
+d = aggregate(1:(end/2))';
+e = aggregate((ceil(end+1)/2):end)';
 
 end
