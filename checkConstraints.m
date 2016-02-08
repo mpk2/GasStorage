@@ -15,6 +15,8 @@
 %   Points in a 2-dimensional plane
 %
 % piecewiseConstraints (array of constraints for each month)
+%   Example: piecewiseConstraints = {[0 1 1 2 2 3;
+%                                     0 0 1 1 2 2]};
 
 function [valid, invalidConstraint, y] = checkConstraints(x, piecewiseConstraints)
 valid = true;
