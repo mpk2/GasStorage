@@ -3,7 +3,7 @@ function monthlyConstraints = dailyToMonthly(dailyPiecewise)
 % Number of days in each month!
 dpm = [31 28 31 30 31 30 31 31 30 31 30 31];
 
-I = dailyPieceiwse{1};
+I = dailyPiecewise{1};
 W = dailyPiecewise{2};
 
 % Injection
