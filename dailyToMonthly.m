@@ -1,4 +1,4 @@
-function monthlyPiecewise = dailyToMonthly(dailyPiecewise) 
+function monthlyConstraints = dailyToMonthly(dailyPiecewise) 
 
 % Number of days in each month!
 dpm = [31 28 31 30 31 30 31 31 30 31 30 31];
@@ -62,5 +62,7 @@ for i=1:length(W)
 end
 
 W = monthlyConstraint;
+
+monthlyConstraints = {I, W};
 
 end
