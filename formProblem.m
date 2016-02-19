@@ -70,7 +70,6 @@ Aeq(end, n+1:2*n) = dpm(1:n);
 % accounted for
 beq(end+1) = (Vn-V0)/g;
 
-
 % Building Prob struct
 options = optimoptions('linprog','Display','off');
 gasProblem = struct('x0',zeros(1, 2*n),'Aeq',Aeq,'beq',beq,...

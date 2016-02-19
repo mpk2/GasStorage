@@ -1,7 +1,3 @@
-%
-%   piecewiseProblem has properties
-%
-%
 function convexProblem = reformPiecewise(initProb, piecewiseConstraints)
 
 x = [0 piecewiseConstraints(1,:)];
@@ -12,14 +8,14 @@ convexProblem = initProb;
 % piecewise constraints are of form [x;y]
 k = convhull(x, y);
 
-% Go through all the segments
-for i=1:(length(k)-1)
+% Go through all the segments counterclockwise, except the first one (0)
+for i=length(k):-1:3
     
     % Extract (x1,y1) (x2,y2) from the convex hull info
     x1 = x(k(i));
     y1 = y(k(i));
-    x2 = x(k(i+1));
-    y2 = y(k(i+1));
+    x2 = x(k(i-1));
+    y2 = y(k(i-1));
     
     % Form the individual linear constraints
     m = (y1-y2) / (x1-x2);
