@@ -39,8 +39,11 @@ function [d, e, fval] = optimizeContractsBB(n, F, I, W, q, p, c, V0, Vn, L)
 initProb = formProblem(n, F, q, p, c, V0, Vn, L);
 
 % Save the piecewise constraints
-piecewiseConstraints = {I, W};
+dailyPiecewiseConstraints = {I, W};
 c = initProb.f;
+
+% Turn these into monthly constraints...
+piecewiseConstraints = dailyToMonthly(dailyPiecewiseConstraints);
 
 % Form the convex hull of the constraints
 relaxedProb = reformPiecewise(initProb, piecewiseConstraints);

@@ -10,6 +10,8 @@ k = convhull([0 piecewiseConstraints(1,:)], [0 piecewiseConstraints(2,:)]);
 % Go through all the segments
 for i=1:length(k)
     
+    % Extract (x1,y1) (x2,y2) from the convex hull info
+    
     % Form the individual linear constraints
     m = (y1-y2) / (x1-x2);
     b = x1-m*y2;
