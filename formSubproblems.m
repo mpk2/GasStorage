@@ -5,8 +5,7 @@
 %   withdrawal rate
 % Output: 2 by 1 cell array of struct, where each struct represents
 % a subproblem. 
-function subproblems = formSubproblems(invalidConstraint, curProb, ...
-    splitPoint, month)
+function subproblems = formSubproblems(curProb, splitPoint, month)
 
     bound = splitPoint(1);
     
