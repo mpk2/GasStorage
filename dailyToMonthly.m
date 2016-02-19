@@ -1,4 +1,4 @@
-function monthlyConstraints = dailyToMonthly(dailyPiecewise) 
+function monthlyConstraints = dailyToMonthly(dailyPiecewise, cap) 
 
 % Number of days in each month!
 dpm = [31 28 31 30 31 30 31 31 30 31 30 31];
@@ -20,10 +20,13 @@ for i=1:length(I)
         for j=1:dpm(i)
             
             % last constraint index that this curInventory is greater than
-            initialXindex = find(curInventory > I(1,:),1,'Last');
+            % i.e. this is the inventory level %
+            initialXindex = find(curInventory > I(1,:)*cap,1,'Last');
 
-            maxInjection = maxInjection + I(initialXindex);
-            curInventory = curInventory + I(initialXindex);
+            % Add the amount of injection to the currentInventory level
+            % and the maximum injection for the month so far
+            maxInjection = maxInjection + I(2,initialXindex);
+            curInventory = curInventory + I(2,initialXindex);
         end
         
         % Add the daily maximum at the current inventory level

@@ -32,7 +32,9 @@
 %   L:  a vector of length n indicating the minimal inventory level of gas
 %       required to be kept during month k (1 <= k <= n)
 %
-function [d, e, fval] = optimizeContractsBB(n, F, I, W, q, p, c, V0, Vn, L)
+%   cap: a scalar representing the maximal inventory capacity
+%
+function [d, e, fval] = optimizeContractsBB(n, F, I, W, q, p, c, V0, Vn, L, cap)
 
 % Develop the original problem (without injection or withdrawal
 % constraints)
@@ -43,7 +45,7 @@ dailyPiecewiseConstraints = {I, W};
 c = initProb.f;
 
 % Turn these into monthly constraints...
-piecewiseConstraints = dailyToMonthly(dailyPiecewiseConstraints);
+piecewiseConstraints = dailyToMonthly(dailyPiecewiseConstraints, cap);
 
 % Form the convex hull of the constraints
 relaxedProb = reformPiecewise(initProb, piecewiseConstraints);
