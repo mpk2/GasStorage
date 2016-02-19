@@ -7,6 +7,8 @@ function convexProblem = reformPiecewise(initProb, piecewiseConstraints)
 x = [0 piecewiseConstraints(1,:)];
 y = [0 piecewiseConstraints(2,:)];
 
+convexProblem = initProb;
+
 % piecewise constraints are of form [x;y]
 k = convhull(x, y);
 
@@ -54,10 +56,12 @@ for i=1:(length(k)-1)
         withdrawalVector(n+j) = -1;
         
         newA = injectionVector-m*inventoryVector;
+        newA(end,:) = -withdrawalVector + m*inventoryVector;
+        
+        convexProb.Aineq = [convexProb.Aineq; newA];
+        convexProb.b = [convexProb.b, b, -b];
     end
 
-    initProb.Aineq = [initProb.Aineq; newA];
-    initProb.b = [initProb.b b];
 end
 
 end
