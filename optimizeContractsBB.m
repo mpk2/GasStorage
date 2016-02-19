@@ -54,7 +54,7 @@ relaxedProb = reformPiecewise(initProb, piecewiseConstraints);
 LIST = [relaxedProb];
 
 % Initialise upper bound based on x=zeros
-x = 0;
+x = zeros(2*n,1);
 curOptimal = c'*x;
 
 % Pop off the stack until it's empty
@@ -93,4 +93,7 @@ while (~isempty(LIST))
         end
     end
 end
+
+fval = curOptimal;
+% d,e = x
 return
