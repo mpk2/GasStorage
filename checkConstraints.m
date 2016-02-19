@@ -7,17 +7,24 @@
 %     piecewiseConstraints of the first violated constraint. Otherwise it's
 %     an empty array.
 %
+% y (scalar)
+%   If valid == false, y is the function value of the violated constraint,
+%   evaluated at the input argument point, x.
+%
 % x (cell aray of 2x1 matrices)
 %   Points in a 2-dimensional plane
 %
 % piecewiseConstraints (array of constraints for each month)
+%   Example: piecewiseConstraints = {[0 1 1 2 2 3;
+%                                     0 0 1 1 2 2]};
 
-function [valid, invalidConstraint] = checkConstraints(x, piecewiseConstraints)
+function [valid, invalidConstraint, y] = checkConstraints(x, piecewiseConstraints)
 valid = true;
-invalidConstraint = [];
+invalidConstraint = -1;
+y = NaN;
 
 for j = 1:length(piecewiseConstraints)
-    % first constraint x-value that x is greater than
+    % last constraint x-value that x is greater than
     xL = find(x{j}(1) > piecewiseConstraints{j}(1,:),1,'Last');
     
     % first constraint x-value that is greater than x
@@ -36,11 +43,15 @@ for j = 1:length(piecewiseConstraints)
     % y = mx + b <=> b = y - mx
     b = y1 - m*x1; 
     
-    % valid if the y-value of the input point, x, is below the constraint.
+    % valid if the y-value of the input point, x, is below the constraint
     valid = x{j}(2) <= m*x{j}(1) + b;
     
     if ~valid 
+        % return the month for which a constraint is violated
         invalidConstraint = j; 
+        
+        % return the function value of the violated constraint
+        y = m*x{j}(1) + b;
         return 
     end
 end
