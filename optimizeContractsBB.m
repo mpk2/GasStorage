@@ -4,19 +4,19 @@
 %
 % Inputs:
 %   
-%   n:  the number of months over which to optimise the contracts
+%   start/finish:  calendar 'number' of the start and finish months
 %
 %   F:  a vector of length n representing the current forward curve for
 %       each month k such that f(k) = forward contract price for month k
 %       1 <= k <= n
 %
-%   I:  a cell array of length n containing pairs of vectors representing
-%       ordered pairs that define boundary points in the daily maximum 
-%       injection rate function in mmbtu for month k (1 <= k <= n)
+%   I:  an array containing pairs of vectors representing ordered pairs 
+%       that define boundary points in the daily maximum injection rate 
+%       function as f(inventory level) = max injection rate in mmbtu
 %
-%   W: a cell array of length n containing pairs of vectors representing
-%       ordered pairs that define boundary points in the daily maximum 
-%       withdrawal rate function in mmbtu for month k (1 <= k <= n)
+%   W: an array containing pairs of vectors representing ordered pairs
+%      that define boundary points in the daily maximum injection rate
+%      function as f(inventory level) = max withdrawal rate in mmbtu
 %
 %   q:  a function representing the price-dependent cost of withdrawal
 %
@@ -34,11 +34,11 @@
 %
 %   cap: a scalar representing the maximal inventory capacity
 %
-function [d, e, fval] = optimizeContractsBB(n, F, I, W, q, p, c, V0, Vn, L, cap)
+function [d, e, fval] = optimizeContractsBB(start, finish, F, I, W, q, p, c, V0, Vn, L, cap)
 
 % Develop the original problem (without injection or withdrawal
 % constraints)
-initProb = formProblem(n, F, q, p, c, V0, Vn, L);
+initProb = formProblem(start, finish, F, q, p, c, V0, Vn, L);
 
 % Save the piecewise constraints
 dailyPiecewiseConstraints = {I, W};
@@ -46,6 +46,8 @@ c = initProb.f;
 
 % Turn these into monthly constraints...
 piecewiseConstraints = dailyToMonthly(dailyPiecewiseConstraints, cap);
+piecewiseConstraints{1}
+piecewiseConstraints{2}
 
 % Form the convex hull of the constraints
 relaxedProb = reformPiecewise(initProb, piecewiseConstraints);
@@ -53,9 +55,13 @@ relaxedProb = reformPiecewise(initProb, piecewiseConstraints);
 % Begin the stack
 LIST = [relaxedProb];
 
+% Total interval length
+n = 12-start+1+finish;
+
 % Initialise upper bound based on x=zeros
 x = zeros(2*n,1);
-curOptimal = c'*x;
+
+curOptimal = c*x;
 
 % Pop off the stack until it's empty
 while (~isempty(LIST))
@@ -69,14 +75,14 @@ while (~isempty(LIST))
     
     % if it cannot be pruned by infeasibility or bound (i.e. is lower than
     % the current best legitimate candidate)
-    if (~isempty(x_s) && c'*x_s < curOptimal && flag == 1)
+    if (~isempty(x_s) && c*x_s < curOptimal && flag == 1)
         
         % Check against piecewise constraints
         [valid, invalidConstraint] = checkConstraints(x_s, piecewiseConstraints);
         
         % If it satisfied the constraints (and is greater from before)
         if(valid)
-            curOptimal = c'*x_s;
+            curOptimal = c*x_s;
             x = x_s;
             
         % It didn't satisfy constraints and is still greater, branch
@@ -95,5 +101,6 @@ while (~isempty(LIST))
 end
 
 fval = curOptimal;
-% d,e = x
+ d = x(1:length(x)/2);
+ e = x(length(x)/2:end);
 return

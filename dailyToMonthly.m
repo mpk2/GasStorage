@@ -10,61 +10,92 @@ I = dailyPiecewise{1};
 
 dailyInjectionModel = [];
     
-for j = 1:length(I(1,:))-1
+injectionInventoryLevel = I(1,:);
+injectionMaxMMBTU = I(2,:);
+
+for j = 1:length(injectionInventoryLevel)-1
 
     % Convert I(1,:) into
     % [ 0   0.2     0.5     0.75;       Starting inventory
     %   7   10.5    4       8   ;       Max days at injection rate
     %   20  15      10      3]          Injection rate
     
-    inventoryAdded = (I(1,j+1)-I(1,j))*cap;
+    inventoryAdded = (injectionInventoryLevel(j+1)-injectionInventoryLevel(j))*cap;
     
     % Calculate the number of days it would take at the max injection 
-    maxDaysForInventoryAdded = inventoryAdded / I(2,j); 
-    dailyInjectionModel(:,j) = [I(1,j); maxDaysForInventoryAdded; I(2,j)];
-    
-    summedDays = cumsum(dailyInjectionModel(2,:));
+    maxDaysForInventoryAdded = inventoryAdded / injectionMaxMMBTU(j); 
+    dailyInjectionModel(:,j) = [injectionInventoryLevel(j); 
+                                maxDaysForInventoryAdded; 
+                                injectionMaxMMBTU(j)];
+end
+
+
+totalDays = zeros(length(injectionInventoryLevel)-1);
+
+for j = 1:length(injectionInventoryLevel)
+   summedDaysInject = cumsum(dailyInjectionModel(2,:));
     
     if(j>1)
         % Now subtract the irrelevant days based on the starting inventory
-        summedDays = summedDays - summedDays(j);
-        summedDays(summedDays<0) = 0;
+        % summedDays(j) is the jth point of the piecewise, so subtracting
+        % the cumulative sum of days up to that inventory level
+        
+        % This should yield a vector which is the number of days injected
+        % at each inventory level for this starting inventory level
+        summedDaysInject = summedDaysInject - summedDaysInject(j-1);
+        summedDaysInject(summedDaysInject<0) = 0;
     end
     
-    totalDays(i,:) = summedDays;
+    totalDaysInject(j,:) = summedDaysInject;
 end
 
+monthlyConstraint = zeros(2,length(injectionInventoryLevel));
+injectionRate = dailyInjectionModel(3,:);
+injectionInterval = dailyInjectionModel(2,:);
     
+I = zeros([2,length(injectionInventoryLevel),length(dpm)]);
 for i=1:length(dpm)
-
-    monthlyConstraint = zeros(2,length(I(1,:)));
       
     % Create a monthly piecewise for each percentage
-    for j=1:length(I(1,:))-1
+    for j=1:length(injectionInventoryLevel)
         
-        startingInventory = I(1,j);
+        startingInventory = injectionInventoryLevel(j)*cap;
         
         maxInjection = 0;
         
-        completeIntervalsIdx = find( totalDays(j,:) <= dpm(i) , 1, 'Last');
+        completeIntervalsIdx = find( totalDaysInject(j,:) <= dpm(i) , 1, 'Last');
+       
+        if(isempty(completeIntervalsIdx)) 
+            completeIntervalsIdx = 0;
+        end
         
         % Calculate the total injection from the complete intervals and
         % then add the partial interval amount
-        maxIntervalInjection = dailyInjectionModel(2,:) .* dailyInjectionModel(3,:);
+       
+        maxIntervalInjection = injectionInterval .* injectionRate;
         
-        partialIntervalInjection = (totalDays(completeIntervalsIdx+1,:)-dpm(i)) ...
-                                    .* dailyInjectionModel(3,completeIntervalIdx+1);
-                                
-        maxInjection = sum(maxIntervalInjection(1:completeIntervalsIdx))... 
+        if(completeIntervalsIdx < length(injectionRate))
+            if(completeIntervalsIdx ~= 0)
+                daysInjectedSoFar = totalDaysInject(j,completeIntervalsIdx);
+            else
+                daysInjectedSoFar = 0;
+            end
+            
+            partialIntervalInjection = (dpm(i)-daysInjectedSoFar) ...
+                                        * injectionRate(completeIntervalsIdx+1);
+        else
+            partialIntervalInjection = 0;
+        end
+        
+        maxInjection = sum(maxIntervalInjection(j:completeIntervalsIdx))... 
                         + partialIntervalInjection;
         
         % Add the daily maximum at the current inventory level
-        monthlyConstraint(:,i) = [startingInventory ; maxInjection];
+        monthlyConstraint(:,j) = [startingInventory ; maxInjection];
     end
-    
+   
+    I(:,:,i) = monthlyConstraint;
 end
-
-I = monthlyConstraint;
 
 
 % Withdrawal
@@ -72,8 +103,10 @@ I = monthlyConstraint;
 W = dailyPiecewise{2};
 
 dailyWithdrawalModel = [];
-    
-for j = 1:length(W(1,:))-1
+withdrawalInventoryLevel = W(1,:);
+withdrawalMaxMMBTU = W(2,:);    
+
+for j = 1:length(withdrawalInventoryLevel)-1
 
     % Convert W(1,:) into
     %
@@ -81,54 +114,88 @@ for j = 1:length(W(1,:))-1
     %   10.5    4       8       5;      Max days at withdrawal rate
     %   10      11      15      20 ]    Withdrawal rate
     
-    inventoryWithdrawn = (W(1,j)-W(1,j+1))*cap;
+    inventoryWithdrawn = (withdrawalInventoryLevel(j+1)-withdrawalInventoryLevel(j))*cap;
     
     % Calculate the number of days it would take at the max injection 
-    maxDaysForInventoryWithdrawn = inventoryWithdrawn / W(2,j); 
-    dailyWithdrawalModel(:,j) = [W(1,j); maxDaysForInventoryWithdrawn; W(2,j)];
-    
-    summedDays = cumsum(dailyWithdrawalModel(2,:));
-    
-    if(j>1) 
-        % Now subtract the irrelevant days based on the starting inventory
-        summedDays = summedDays - summedDays(j);
-        summedDays(summedDays<0) = 0;
-    end
-    
-    totalDays(i,:) = summedDays;
+    maxDaysForInventoryWithdrawn = inventoryWithdrawn / withdrawalMaxMMBTU(j); 
+    dailyWithdrawalModel(:,j) = [   withdrawalInventoryLevel(j); 
+                                    maxDaysForInventoryWithdrawn; 
+                                    withdrawalInventoryLevel(j)*cap];
 
 end
 
-    
-for i=1:length(dpm)
 
-    monthlyConstraint = zeros(2,length(I(1,:)));
+withdrawalRate = dailyWithdrawalModel(3,:);
+withdrawalInterval = dailyWithdrawalModel(2,:);
+
+for j = 1:length(withdrawalInventoryLevel)
+   summedDaysWithdraw = fliplr(cumsum(fliplr(withdrawalInterval)));
+   
+    if(j>1) 
+        % Now subtract the irrelevant days based on the starting inventory
+        summedDaysWithdraw = summedDaysWithdraw - summedDaysWithdraw(end-(j-2));
+        summedDaysWithdraw(summedDaysWithdraw<0) = 0;
+    end
+    
+    totalDaysWithdraw(j,:) = summedDaysWithdraw; 
+end
+
+monthlyConstraint = zeros(2,length(withdrawalInventoryLevel));
+    
+W = zeros([2,length(withdrawalInventoryLevel), length(dpm)]);
+
+for i=1:length(dpm)
       
     % Create a monthly piecewise for each percentage
-    for j=1:length(W(1,:))-1
+    for j=1:length(withdrawalInventoryLevel)
         
-        startingInventory = W(1,j);
+        startingInventory = withdrawalInventoryLevel(j)*cap;
+        
         maxWithdrawal = 0;
         
-        completeIntervalsIdx = find( totalDays(j,:) <= dpm(i) , 1, 'Last');
+        completeIntervalsIdx = find( totalDaysWithdraw(end-j+1,:) <= dpm(i) , 1, 'First');
+       
+        if(isempty(completeIntervalsIdx)) 
+            completeIntervalsIdx = length(totalDaysWithdraw(end-j+1,:))+1;
+        end
         
         % Calculate the total withdrawal from the complete intervals and
         % then add the partial interval amount
-        maxIntervalWithdrawal = dailyWithdrawalModel(2,:) .* dailyWithdrawalModel(3,:);
+        maxIntervalWithdrawal = withdrawalInterval .* withdrawalRate;
         
-        partialIntervalWithdrawal = (totalDays(completeIntervalsIdx+1,:)-dpm(i)) ...
-                                    .* dailyInjectionModel(3,completeIntervalIdx+1);
-                                
-        maxWithdrawal = sum(maxIntervalWithdrawal(1:completeIntervalsIdx))... 
-                        + partialIntervalWithdrawal;
         
+        if(completeIntervalsIdx < length(totalDaysWithdraw(end-j+1,:))+1)
+            daysWithdrawnSoFar = totalDaysWithdraw(end-j+1,completeIntervalsIdx);
+        else
+            daysWithdrawnSoFar = 0;
+        end
+            
+        if(completeIntervalsIdx > 1)
+            
+            partialIntervalWithdrawal = (dpm(i)-daysWithdrawnSoFar) ...
+                                        * withdrawalRate(completeIntervalsIdx-1);
+        else 
+            
+            partialIntervalWithdrawal = 0;
+        end
+        
+        if(daysWithdrawnSoFar>0)
+            maxWithdrawal = sum(maxIntervalWithdrawal(completeIntervalsIdx:j))... 
+                           + partialIntervalWithdrawal;
+        else 
+            maxWithdrawal = partialIntervalWithdrawal;
+        end
+        
+        if(maxWithdrawal > withdrawalInventoryLevel(j)*cap)
+            maxWithdrawal = withdrawalInventoryLevel(j)*cap;
+        end
         % Add the daily maximum at the current inventory level
-        monthlyConstraint(:,i) = [startingInventory ; maxWithdrawal];
+        monthlyConstraint(:,j) = [startingInventory ; maxWithdrawal];
     end
-    
+
+    W(:,:,i) = monthlyConstraint;
 end
 
-W = monthlyConstraint;
 
 monthlyConstraints = {I, W};
 

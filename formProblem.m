@@ -1,4 +1,6 @@
-function gasProblem = formProblem(n, F, q, p, c, V0, Vn, L)
+function gasProblem = formProblem(start, finish, F, q, p, c, V0, Vn, L)
+
+n = 12-start+1+finish;
 
 % Define g to be a constant number of mmbtu per day associated with each
 % forward contract
@@ -22,21 +24,28 @@ Q = q(F) + c;
 % Objective vector -- this makes it so we optimise F*(d-e)-g*(Q*d-P*e)
 % In other words, we optimise (gas revenue - gas expenditure - gas
 % injection/withdrawal costs)
-c = [F-g*Q -F-g*P];
+c = [F-g*Q; -F-g*P];
 
 A = [];
 b = [];
 
 % Inventory minimum:
-% -L(k) >= -v(s) where s is defined as above, j=1, k=2:n
+% -L(k) >= -v(s) where s is defined as above, j=1, k=[start ... finish]
+
+% Want to create an array that cycles through 12
+% Do this with mod, going to use 'months' as an index set
+months = mod(start:start+n-1,12);
+months(months==0)=12;
+
 for k=2:n
+    
     % Preallocate an empty row for this constraint
     A(end+1,:) = zeros(1,2*n);
     
     % We want to limit the sth volume, which is equivalent to limiting
     % contracts
-    A(end, 1:k-1) = -dpm(1:k-1);
-    A(end, n+1:n+k-1) = dpm(1:k-1);
+    A(end, 1:k-1) = -dpm(months(1:k-1));
+    A(end, n+1:n+k-1) = dpm(months(1:k-1));
     
     % Add in the current day worth of injection/withdrawal (first day of
     % the month)
@@ -44,7 +53,7 @@ for k=2:n
     A(end, n+k) = 1;
     
     % Limit this to inventory minimum
-    b(end+1) = (L(k-1)-V0)/g;
+    b(end+1) = (L(months(k-1))-V0)/g;
 end
 
 % Negate everything since we are inverting the constraint
@@ -63,8 +72,8 @@ beq = [];
 Aeq(end+1,:) = zeros(1,2*n);
 
 % Add up all net contract-days
-Aeq(end, 1:n) = -dpm(1:n);
-Aeq(end, n+1:2*n) = dpm(1:n);
+Aeq(end, 1:n) = -dpm(months(1:n));
+Aeq(end, n+1:2*n) = dpm(months(1:n));
 
 % By doing it this way, we ensure that both boundary conditions are
 % accounted for

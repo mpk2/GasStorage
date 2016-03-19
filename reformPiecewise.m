@@ -1,12 +1,20 @@
 function convexProblem = reformPiecewise(initProb, piecewiseConstraints)
 
-x = [0 piecewiseConstraints(1,:)];
-y = [0 piecewiseConstraints(2,:)];
+x = [0 piecewiseConstraints{1}(1,:)];
+y = [0 piecewiseConstraints{1}(2,:)];
+
 
 convexProblem = initProb;
 
 % piecewise constraints are of form [x;y]
 k = convhull(x, y);
+
+n = length(initProb.lb)/2;
+
+% Number of days in each month!
+dpm = [31 28 31 30 31 30 31 31 30 31 30 31];
+
+convexProb = initProb;
 
 % Go through all the segments counterclockwise, except the first one (0)
 for i=length(k):-1:3
@@ -55,7 +63,7 @@ for i=length(k):-1:3
         newA(end,:) = -withdrawalVector + m*inventoryVector;
         
         convexProb.Aineq = [convexProb.Aineq; newA];
-        convexProb.b = [convexProb.b, b, -b];
+        convexProb.bineq = [convexProb.bineq, b, -b];
     end
 
 end
