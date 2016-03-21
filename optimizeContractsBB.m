@@ -46,8 +46,6 @@ c = initProb.f;
 
 % Turn these into monthly constraints...
 piecewiseConstraints = dailyToMonthly(dailyPiecewiseConstraints, cap);
-piecewiseConstraints{1}
-piecewiseConstraints{2}
 
 % Form the convex hull of the constraints
 relaxedProb = reformPiecewise(initProb, piecewiseConstraints);

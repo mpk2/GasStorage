@@ -120,15 +120,19 @@ for j = 1:length(withdrawalInventoryLevel)-1
     maxDaysForInventoryWithdrawn = inventoryWithdrawn / withdrawalMaxMMBTU(j); 
     dailyWithdrawalModel(:,j) = [   withdrawalInventoryLevel(j); 
                                     maxDaysForInventoryWithdrawn; 
-                                    withdrawalInventoryLevel(j)*cap];
+                                    withdrawalMaxMMBTU(j)];
 
 end
 
 
 withdrawalRate = dailyWithdrawalModel(3,:);
 withdrawalInterval = dailyWithdrawalModel(2,:);
+totalDaysWithdraw = [];
 
 for j = 1:length(withdrawalInventoryLevel)
+    
+   % flip this so that the summed days increase towards 0 (the direction in
+   % which withdrawal moves the inventory level)
    summedDaysWithdraw = fliplr(cumsum(fliplr(withdrawalInterval)));
    
     if(j>1) 
@@ -137,7 +141,7 @@ for j = 1:length(withdrawalInventoryLevel)
         summedDaysWithdraw(summedDaysWithdraw<0) = 0;
     end
     
-    totalDaysWithdraw(j,:) = summedDaysWithdraw; 
+    totalDaysWithdraw = [summedDaysWithdraw; totalDaysWithdraw];
 end
 
 monthlyConstraint = zeros(2,length(withdrawalInventoryLevel));
@@ -153,42 +157,47 @@ for i=1:length(dpm)
         
         maxWithdrawal = 0;
         
-        completeIntervalsIdx = find( totalDaysWithdraw(end-j+1,:) <= dpm(i) , 1, 'First');
+        % Find how many complete intervals this month will cover for the
+        % jth starting inventory level
+        completeIntervalsIdx = find( totalDaysWithdraw(j,:) <= dpm(i) , 1, 'First');
        
+        % If there is no interval less than the length of the month wide,
+        % then just set the index past the length
         if(isempty(completeIntervalsIdx)) 
-            completeIntervalsIdx = length(totalDaysWithdraw(end-j+1,:))+1;
+            completeIntervalsIdx = length(totalDaysWithdraw(j,:))+1;
         end
         
         % Calculate the total withdrawal from the complete intervals and
         % then add the partial interval amount
         maxIntervalWithdrawal = withdrawalInterval .* withdrawalRate;
         
-        
         if(completeIntervalsIdx < length(totalDaysWithdraw(end-j+1,:))+1)
-            daysWithdrawnSoFar = totalDaysWithdraw(end-j+1,completeIntervalsIdx);
+            daysWithdrawnSoFar = totalDaysWithdraw(j,completeIntervalsIdx);
         else
             daysWithdrawnSoFar = 0;
         end
             
         if(completeIntervalsIdx > 1)
-            
             partialIntervalWithdrawal = (dpm(i)-daysWithdrawnSoFar) ...
                                         * withdrawalRate(completeIntervalsIdx-1);
         else 
-            
             partialIntervalWithdrawal = 0;
         end
+       
         
         if(daysWithdrawnSoFar>0)
-            maxWithdrawal = sum(maxIntervalWithdrawal(completeIntervalsIdx:j))... 
+            maxWithdrawal = sum(maxIntervalWithdrawal(completeIntervalsIdx:j-1))... 
                            + partialIntervalWithdrawal;
         else 
             maxWithdrawal = partialIntervalWithdrawal;
         end
         
+        
+        % Just to make sure that you can't withdraw more than you have...
         if(maxWithdrawal > withdrawalInventoryLevel(j)*cap)
             maxWithdrawal = withdrawalInventoryLevel(j)*cap;
         end
+        
         % Add the daily maximum at the current inventory level
         monthlyConstraint(:,j) = [startingInventory ; maxWithdrawal];
     end
