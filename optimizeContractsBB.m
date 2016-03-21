@@ -36,6 +36,8 @@
 %
 function [d, e, fval] = optimizeContractsBB(start, finish, F, I, W, q, p, c, V0, Vn, L, cap)
 
+g=1e4;
+
 % Develop the original problem (without injection or withdrawal
 % constraints)
 initProb = formProblem(start, finish, F, q, p, c, V0, Vn, L);
@@ -69,14 +71,22 @@ while (~isempty(LIST))
     LIST(:,1) = [];
     
     % Calculate the optimisation to this problem
-    [x_s,~,flag] = linprog(curProblem);
+    [x_s,~,flag] = linprog(curProblem)
     
     % if it cannot be pruned by infeasibility or bound (i.e. is lower than
     % the current best legitimate candidate)
     if (~isempty(x_s) && c*x_s < curOptimal && flag == 1)
         
+        % Need to create cell array of inventory vs injection for each
+        % month
+        d_s = x_s(1:end/2);
+        e_s = x_s(end/2+1:end);
+        delta = [V0+cumsum(e_s-d_s)*g (e_s-d_s)*g];
+        delta(:,1) = delta(:,1) - delta(:,2);
+        delta = mat2cell(delta,ones(length(delta),1),2);
+        
         % Check against piecewise constraints
-        [valid, invalidConstraint] = checkConstraints(x_s, piecewiseConstraints);
+        [valid, invalidConstraint] = checkConstraints(delta, piecewiseConstraints)
         
         % If it satisfied the constraints (and is greater from before)
         if(valid)
@@ -89,7 +99,8 @@ while (~isempty(LIST))
             % Subdivide the problem into two on either side of the point based
             % on the constraint that was violated (I or W, then which
             % segment)
-            subProblems = formSubproblems(invalidConstraint, curProb, piecewiseConstraints);
+            subProblems = formSubproblems(  invalidConstraint, relaxedProb, ...
+                                            piecewiseConstraints);
             
             % Depth first
             LIST = [subProblems LIST];
@@ -99,6 +110,6 @@ while (~isempty(LIST))
 end
 
 fval = curOptimal;
- d = x(1:length(x)/2);
- e = x(length(x)/2:end);
+ d = x(1:end/2);
+ e = x(end/2+1:end);
 return

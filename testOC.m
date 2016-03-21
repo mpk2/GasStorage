@@ -7,19 +7,19 @@ varlist = {'N','F','i','w','p','q','c','V0','Vn','l'};
 clear(varlist{:});
 
 N = 12;
-F = 3+ceil(abs(5*randn(1,N)))/100
+F = 3+ceil(abs(5*randn(1,N)))*1e2
 i = abs(500*randn(1,N))
 w = abs(500*randn(1,N))
 p = @(x) 0.00;
 q = @(x) 0.01;
 c = 0;
 V0 = 100000*randi(10)*rand(1);
-Vn = ceil(2*rand(1)*V0);
+Vn = ceil(5*rand*V0);
 l = ceil(randi(40,1,N)*(V0+Vn)/200);
 
 [d, e, fval] = optimizeContracts(N,F,i,w,q,p,c,V0,Vn,l);
 
-f(v,n) = fval;
+%f(v,n) = fval;
 
 if(~isempty([d' e' fval]))
     plotConstraints(d,e,i,w,V0,Vn,l);

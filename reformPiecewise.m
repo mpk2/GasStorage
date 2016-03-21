@@ -8,7 +8,7 @@ dpm = [31 28 31 30 31 30 31 31 30 31 30 31];
 
 for month = 1:n
 
-    for constraint=1:2
+    for constraint=1
         
         x = [0 piecewiseConstraints{constraint}(1,:,month)];
         y = [0 piecewiseConstraints{constraint}(2,:,month)];
@@ -27,8 +27,8 @@ for month = 1:n
             y2 = y(k(i-1));
 
             % Form the individual linear constraints
-            m = (y1-y2) / (x1-x2);
-            b = x1-m*y2;
+            m = (y1-y2) / (x1-x2); % -1
+            b = x1-m*y2; % 0
 
             % Preallocate an empty row for this constraint
             inventoryVector = zeros(1,2*n);
@@ -40,25 +40,23 @@ for month = 1:n
 
             % Add in the current day worth of injection/withdrawal (first day of
             % the month)
-            inventoryVector(k) = -1;
+            inventoryVector(month) = -1;
             inventoryVector(n+month) = 1;
 
-            % Preallocate an empty row for this injection constraint
-            vector = zeros(1,2*n);
+            % Preallocate an empty row for this injection/withdrawal constraint
+            deltaVector = zeros(1,2*n);
 
             % Subtract the delivered contracts from the exercised contracts for
             % this month for injection, reverse for withdrawal
-            vector(month) = -1^constraint;
-            vector(n+month) = 1^(2*constraint);
+            deltaVector(month) = -1^(constraint-1);
+            deltaVector(n+month) = -1^(2*constraint-1);
 
-            newA = (-1)^constraint*(-vector+m*inventoryVector);
+            newA = (-1)^constraint*(deltaVector+m*inventoryVector);
 
             convexProblem.Aineq = [convexProblem.Aineq; newA];
             convexProblem.bineq = [convexProblem.bineq, (-1)^constraint*-b];
-    end
+        end
 
     end
 
 end
-
-convexProblem.Aineq

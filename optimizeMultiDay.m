@@ -71,11 +71,11 @@ for i=1:size(F,1)
     end
         
     % Set fval to be the most updated value of the contracts we have
-    fval(i+1) = fval(i) + marginal
+    fval(i+1) = fval(i) + marginal;
     
 end
 
-aggregate = sum(s,1)
+aggregate = sum(s,1);
 d = aggregate(1:(end/2))';
 e = aggregate((ceil(end+1)/2):end)';
 
