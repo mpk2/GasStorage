@@ -71,7 +71,7 @@ while (~isempty(LIST))
     LIST(:,1) = [];
     
     % Calculate the optimisation to this problem
-    [x_s,~,flag] = linprog(curProblem)
+    [x_s,~,flag] = linprog(curProblem);
     
     % if it cannot be pruned by infeasibility or bound (i.e. is lower than
     % the current best legitimate candidate)
@@ -81,12 +81,19 @@ while (~isempty(LIST))
         % month
         d_s = x_s(1:end/2);
         e_s = x_s(end/2+1:end);
-        delta = [V0+cumsum(e_s-d_s)*g (e_s-d_s)*g];
+        delta = [(V0+cumsum(e_s-d_s)*g) (e_s-d_s)*g];
         delta(:,1) = delta(:,1) - delta(:,2);
         delta = mat2cell(delta,ones(length(delta),1),2);
         
+        relevantConstraints = {};
+        
+        for month=1:size(delta,1)
+           relevantConstraints{month} = piecewiseConstraints{1 + (delta{month}(2) > 0)}(:,:,month);
+           delta{month}(2) = abs(delta{month}(2)); 
+        end 
+        
         % Check against piecewise constraints
-        [valid, invalidConstraint] = checkConstraints(delta, piecewiseConstraints)
+        [valid, invalidConstraint] = checkConstraints(delta, relevantConstraints);
         
         % If it satisfied the constraints (and is greater from before)
         if(valid)
@@ -99,11 +106,11 @@ while (~isempty(LIST))
             % Subdivide the problem into two on either side of the point based
             % on the constraint that was violated (I or W, then which
             % segment)
-            subProblems = formSubproblems(  invalidConstraint, relaxedProb, ...
-                                            piecewiseConstraints);
+            subProblems = formSubproblems(relaxedProb, delta{invalidConstraint}/cap, ...
+                                          invalidConstraint);
             
-            % Depth first
-            LIST = [subProblems LIST];
+            % breadth first
+            LIST = [LIST subProblems{1} subProblems{2}];
             
         end
     end

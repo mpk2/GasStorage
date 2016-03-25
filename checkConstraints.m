@@ -25,7 +25,7 @@ y = NaN;
 
 for j = 1:length(piecewiseConstraints)
     % last constraint x-value that x is greater than
-    xL = find(x{j}(1) > piecewiseConstraints{j}(1,:),1,'Last');
+    xL = find(x{j}(1) >= piecewiseConstraints{j}(1,:),1,'Last');
     
     % first constraint x-value that is greater than x
     xR = xL + 1;

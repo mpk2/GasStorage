@@ -7,15 +7,17 @@
 % a subproblem. 
 function subproblems = formSubproblems(curProb, splitPoint, month)
 
+    dpm = [31 28 31 30 31 30 31 31 30 31 30 31];
+    
     bound = splitPoint(1);
     
-    n = size(curProb.x/2);
+    n = length(curProb.x0)/2;
     
     % Copy problem
     subProbl = curProb;
     subProbu = curProb;
     
-    A = subProbl.A;
+    A = subProbl.Aineq;
     
     % Preallocate an empty row for this constraint
     A(end+1,:) = zeros(1,2*n);
@@ -31,22 +33,19 @@ function subproblems = formSubproblems(curProb, splitPoint, month)
     A(end, n+month) = 1;
 
     % Adding A to both subproblems
-    subProbl.A = A;
-    subProbu.A = A;
+    subProbl.Aineq = A;
+    subProbu.Aineq = -A;
     
     % Adding b to both subproblems
-    b = subProbl.b;
+    b = subProbl.bineq;
     
-    b(end) = bound;
+    b(end+1) = bound;
     
-    subProbl.b = b;
+    subProbl.bineq = b;
     
     b(end) = -1*b(end);
     
-    subProbu.b = b;
-    
-    
-    
+    subProbu.bineq = b;
     
     subproblems = {subProbu, subProbl};
    

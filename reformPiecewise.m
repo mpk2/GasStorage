@@ -1,6 +1,7 @@
 function convexProblem = reformPiecewise(initProb, piecewiseConstraints)
 
 convexProblem = initProb;
+size(convexProblem.Aineq)
 n = length(initProb.lb)/2;
 
 % Number of days in each month!
@@ -8,7 +9,7 @@ dpm = [31 28 31 30 31 30 31 31 30 31 30 31];
 
 for month = 1:n
 
-    for constraint=1
+    for constraint=1:2
         
         x = [0 piecewiseConstraints{constraint}(1,:,month)];
         y = [0 piecewiseConstraints{constraint}(2,:,month)];
@@ -58,5 +59,9 @@ for month = 1:n
         end
 
     end
+    
+end
+
+size(convexProblem.Aineq)
 
 end
