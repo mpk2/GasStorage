@@ -5,9 +5,19 @@
 %   withdrawal rate
 % Output: 2 by 1 cell array of struct, where each struct represents
 % a subproblem. 
-function subproblems = formSubproblems(curProb, splitPoint, month)
+function subproblems = formSubproblems(start, finish, curProb, splitPoint, monthIndex)
 
     dpm = [31 28 31 30 31 30 31 31 30 31 30 31];
+    g=1e4;
+    
+    n = mod(finish-start+1,12);
+    n(n==0)=12;
+
+    % Want to create an array that cycles through 12
+    % Do this with mod, going to use 'months' as an index set
+    months = mod(start:start+n-1,12);
+    months(months==0)=12;
+
     
     bound = splitPoint(1);
     
@@ -24,13 +34,13 @@ function subproblems = formSubproblems(curProb, splitPoint, month)
     
     % We want to limit the sth volume, which is equivalent to limiting
     % contracts
-    A(end, 1:month-1) = -dpm(1:month-1);
-    A(end, n+1:n+month-1) = dpm(1:month-1);
+    A(end, months(1:monthIndex-1)) = -g;
+    A(end, n+months(1:monthIndex-1)) = g;
     
     % Add in the current day worth of injection/withdrawal (first day of
     % the month)
-    A(end, month) = -1;
-    A(end, n+month) = 1;
+    A(end, months(monthIndex)) = -g/dpm(months(monthIndex));
+    A(end, n+months(monthIndex)) = g/dpm(months(monthIndex));
 
     % Adding A to both subproblems
     subProbl.Aineq = A;

@@ -1,25 +1,33 @@
-function convexProblem = reformPiecewise(initProb, piecewiseConstraints)
+function convexProblem = reformPiecewise(start, finish, initProb, piecewiseConstraints)
 
 convexProblem = initProb;
-size(convexProblem.Aineq)
-n = length(initProb.lb)/2;
+
+n = mod(finish-start+1,12);
+n(n==0)=12;
+
+% Want to create an array that cycles through 12
+% Do this with mod, going to use 'months' as an index set
+months = mod(start:start+n-1,12);
+months(months==0)=12;
+
+
+g=1e4;
 
 % Number of days in each month!
 dpm = [31 28 31 30 31 30 31 31 30 31 30 31];
 
-for month = 1:n
+for monthIndex = 1:n
 
     for constraint=1:2
         
-        x = [0 piecewiseConstraints{constraint}(1,:,month)];
-        y = [0 piecewiseConstraints{constraint}(2,:,month)];
+        x = [0 piecewiseConstraints{constraint}(1,:,monthIndex)];
+        y = [0 piecewiseConstraints{constraint}(2,:,monthIndex)];
 
         % piecewise constraints are of form [x;y]
         k = convhull(x, y);
         
-        
-        % Go through all the segments counterclockwise, except the first one (0)
-        for i=length(k)-(2-constraint):-1:2
+        % Go through all the segments counterclockwise, except the first one (i=1)
+        for i=length(k)-(2-constraint):-1:3
 
             % Extract (x1,y1) (x2,y2) from the convex hull info
             x1 = x(k(i));
@@ -28,40 +36,41 @@ for month = 1:n
             y2 = y(k(i-1));
 
             % Form the individual linear constraints
-            m = (y1-y2) / (x1-x2); % -1
-            b = x1-m*y2; % 0
+            m = (y2-y1) / (x2-x1);
+            b = -x1*m+y1;
 
             % Preallocate an empty row for this constraint
-            inventoryVector = zeros(1,2*n);
+            v = zeros(1,2*n);
 
-            % We want to limit the sth volume, which is equivalent to limiting
-            % contracts
-            inventoryVector(1:month-1) = -dpm(1:month-1);
-            inventoryVector(n+1:n+month-1) = dpm(1:month-1);
+            % Basically we have -w(inventory) <= dInventory <= i(inventory)
+            % dInventory = delta*X
+            % inventory = v*X
+            % i(inventory) = mv*X + b [same form for w(inventory)]
+            v(months(1:monthIndex-1)) = -g;
+            v(n+months(1:monthIndex-1)) = g;
 
             % Add in the current day worth of injection/withdrawal (first day of
             % the month)
-            inventoryVector(month) = -1;
-            inventoryVector(n+month) = 1;
+            v(months(monthIndex)) = -g/dpm(months(monthIndex));
+            v(n+months(monthIndex)) = g/dpm(months(monthIndex));
 
             % Preallocate an empty row for this injection/withdrawal constraint
-            deltaVector = zeros(1,2*n);
+            delta = zeros(1,2*n);
 
             % Subtract the delivered contracts from the exercised contracts for
             % this month for injection, reverse for withdrawal
-            deltaVector(month) = -1^(constraint-1);
-            deltaVector(n+month) = -1^(2*constraint-1);
+            delta(months(monthIndex)) = -g;
+            delta(n+months(monthIndex)) = g;
 
-            newA = (-1)^constraint*(deltaVector+m*inventoryVector);
+            newA = (-1)^(constraint-1)*(delta)-m*v;
 
             convexProblem.Aineq = [convexProblem.Aineq; newA];
-            convexProblem.bineq = [convexProblem.bineq, (-1)^constraint*-b];
+            convexProblem.bineq = [convexProblem.bineq, b];
         end
 
     end
     
 end
 
-size(convexProblem.Aineq)
 
 end

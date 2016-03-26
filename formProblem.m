@@ -1,6 +1,7 @@
 function gasProblem = formProblem(start, finish, F, q, p, c, V0, Vn, L)
 
-n = 12-start+1+finish;
+n = mod(finish-start+1,12);
+n(n==0)=12;
 
 % Define g to be a constant number of mmbtu per day associated with each
 % forward contract

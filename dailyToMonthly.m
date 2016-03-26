@@ -1,8 +1,14 @@
-function monthlyConstraints = dailyToMonthly(dailyPiecewise, cap) 
+function monthlyConstraints = dailyToMonthly(start, finish, dailyPiecewise, cap) 
 
 % Number of days in each month!
 dpm = [31 28 31 30 31 30 31 31 30 31 30 31];
 
+n = 12-start+1+finish;
+
+% Want to create an array that cycles through 12
+% Do this with mod, going to use 'months' as an index set
+months = mod(start:start+n-1,12);
+months(months==0)=12;
 
 % Injection
 
@@ -53,8 +59,8 @@ monthlyConstraint = zeros(2,length(injectionInventoryLevel));
 injectionRate = dailyInjectionModel(3,:);
 injectionInterval = dailyInjectionModel(2,:);
     
-I = zeros([2,length(injectionInventoryLevel),length(dpm)]);
-for i=1:length(dpm)
+I = zeros([2,length(injectionInventoryLevel),n]);
+for i=1:n
       
     % Create a monthly piecewise for each percentage
     for j=1:length(injectionInventoryLevel)
@@ -63,7 +69,7 @@ for i=1:length(dpm)
         
         maxInjection = 0;
         
-        completeIntervalsIdx = find( totalDaysInject(j,:) <= dpm(i) , 1, 'Last');
+        completeIntervalsIdx = find( totalDaysInject(j,:) <= dpm(months(i)) , 1, 'Last');
        
         if(isempty(completeIntervalsIdx)) 
             completeIntervalsIdx = 0;
@@ -81,7 +87,7 @@ for i=1:length(dpm)
                 daysInjectedSoFar = 0;
             end
             
-            partialIntervalInjection = (dpm(i)-daysInjectedSoFar) ...
+            partialIntervalInjection = (dpm(months(i))-daysInjectedSoFar) ...
                                         * injectionRate(completeIntervalsIdx+1);
         else
             partialIntervalInjection = 0;
@@ -146,9 +152,9 @@ end
 
 monthlyConstraint = zeros(2,length(withdrawalInventoryLevel));
     
-W = zeros([2,length(withdrawalInventoryLevel), length(dpm)]);
+W = zeros([2,length(withdrawalInventoryLevel), n]);
 
-for i=1:length(dpm)
+for i=1:n
       
     % Create a monthly piecewise for each percentage
     for j=1:length(withdrawalInventoryLevel)
@@ -159,7 +165,7 @@ for i=1:length(dpm)
         
         % Find how many complete intervals this month will cover for the
         % jth starting inventory level
-        completeIntervalsIdx = find( totalDaysWithdraw(j,:) <= dpm(i) , 1, 'First');
+        completeIntervalsIdx = find( totalDaysWithdraw(j,:) <= dpm(months(i)) , 1, 'First');
        
         % If there is no interval less than the length of the month wide,
         % then just set the index past the length
@@ -178,7 +184,7 @@ for i=1:length(dpm)
         end
             
         if(completeIntervalsIdx > 1)
-            partialIntervalWithdrawal = (dpm(i)-daysWithdrawnSoFar) ...
+            partialIntervalWithdrawal = (dpm(months(i))-daysWithdrawnSoFar) ...
                                         * withdrawalRate(completeIntervalsIdx-1);
         else 
             partialIntervalWithdrawal = 0;

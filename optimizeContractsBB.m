@@ -47,20 +47,25 @@ dailyPiecewiseConstraints = {I, W};
 c = initProb.f;
 
 % Turn these into monthly constraints...
-piecewiseConstraints = dailyToMonthly(dailyPiecewiseConstraints, cap);
+piecewiseConstraints = dailyToMonthly(start, finish, dailyPiecewiseConstraints, cap);
 
 % Form the convex hull of the constraints
-relaxedProb = reformPiecewise(initProb, piecewiseConstraints);
+relaxedProb = reformPiecewise(start, finish, initProb, piecewiseConstraints);
 
 % Begin the stack
 LIST = [relaxedProb];
 
-% Total interval length
-n = 12-start+1+finish;
+% Total interval length is just some modular stuff
+n = mod(finish-start+1,12);
+n(n==0)=12;
+
+% Want to create an array that cycles through 12
+% Do this with mod, going to use 'months' as an index set
+months = mod(start:start+n-1,12);
+months(months==0)=12;
 
 % Initialise upper bound based on x=zeros
 x = zeros(2*n,1);
-
 curOptimal = c*x;
 
 % Pop off the stack until it's empty
@@ -87,13 +92,14 @@ while (~isempty(LIST))
         
         relevantConstraints = {};
         
-        for month=1:size(delta,1)
-           relevantConstraints{month} = piecewiseConstraints{1 + (delta{month}(2) > 0)}(:,:,month);
-           delta{month}(2) = abs(delta{month}(2)); 
+        for monthIndex=1:n
+           relevantConstraints{monthIndex} = ...
+               piecewiseConstraints{1 + (delta{months(monthIndex)}(2) < 0)}(:,:,months(monthIndex));
+           delta{months(monthIndex)}(2) = abs(delta{months(monthIndex)}(2)); 
         end 
         
         % Check against piecewise constraints
-        [valid, invalidConstraint] = checkConstraints(delta, relevantConstraints);
+        [valid, invalidMonthIndex] = checkConstraints(start, finish, delta, relevantConstraints);
         
         % If it satisfied the constraints (and is greater from before)
         if(valid)
@@ -103,14 +109,29 @@ while (~isempty(LIST))
         % It didn't satisfy constraints and is still greater, branch
         else
             
-            % Subdivide the problem into two on either side of the point based
+            % Subdivide the initial problem into two on either side of the point based
             % on the constraint that was violated (I or W, then which
             % segment)
-            subProblems = formSubproblems(relaxedProb, delta{invalidConstraint}/cap, ...
-                                          invalidConstraint);
+            splitPoint = delta{months(invalidMonthIndex)};
+            
+            subProblems = formSubproblems(  start, finish, curProblem, ...
+                                            splitPoint, ...
+                                            invalidMonthIndex);
             
             % breadth first
-            LIST = [LIST subProblems{1} subProblems{2}];
+            % Reform the convex hull of the constraints for each subproblem
+            % and add to the list
+            size(curProblem.Aineq)
+            size(subProblems{1}.Aineq)
+            
+            % Need to use the splitpoint to re-relax
+            [lowerConstraints, upperConstraints] = splitPiecewise(piecewiseConstraints, splitPoint(1));
+            
+            lowerProb = reformPiecewise(start, finish, subProblems{1}, lowerConstraints);
+            upperProb = reformPiecewise(start, finish, subProblems{2}, upperConstraints);
+            LIST = [LIST lowerProb upperProb];
+            size(upperProb.Aineq)
+            '!'  
             
         end
     end
