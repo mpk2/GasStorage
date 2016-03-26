@@ -76,7 +76,7 @@ while (~isempty(LIST))
     LIST(:,1) = [];
     
     % Calculate the optimisation to this problem
-    [x_s,~,flag] = linprog(curProblem);
+    [x_s,~,flag] = linprog(curProblem)
     
     % if it cannot be pruned by infeasibility or bound (i.e. is lower than
     % the current best legitimate candidate)
@@ -125,7 +125,7 @@ while (~isempty(LIST))
             size(subProblems{1}.Aineq)
             
             % Need to use the splitpoint to re-relax
-            [lowerConstraints, upperConstraints] = splitPiecewise(piecewiseConstraints, splitPoint(1));
+            [lowerConstraints, upperConstraints] = splitPiecewise(piecewiseConstraints, splitPoint);
             
             lowerProb = reformPiecewise(start, finish, subProblems{1}, lowerConstraints);
             upperProb = reformPiecewise(start, finish, subProblems{2}, upperConstraints);

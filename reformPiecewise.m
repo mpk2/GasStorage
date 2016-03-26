@@ -18,16 +18,18 @@ dpm = [31 28 31 30 31 30 31 31 30 31 30 31];
 
 for monthIndex = 1:n
 
-    for constraint=1:2
+    for constraint=2
         
         x = [0 piecewiseConstraints{constraint}(1,:,monthIndex)];
         y = [0 piecewiseConstraints{constraint}(2,:,monthIndex)];
 
+        
         % piecewise constraints are of form [x;y]
         k = convhull(x, y);
-        
+        figure
+        plot(x(k(length(k)-(2-constraint):-1:2)),y(k(length(k)-(2-constraint):-1:2)),'r-',x,y,'b*')
         % Go through all the segments counterclockwise, except the first one (i=1)
-        for i=length(k)-(2-constraint):-1:3
+        for i=length(k)-(2-constraint):-1:2
 
             % Extract (x1,y1) (x2,y2) from the convex hull info
             x1 = x(k(i));
@@ -62,7 +64,7 @@ for monthIndex = 1:n
             delta(months(monthIndex)) = -g;
             delta(n+months(monthIndex)) = g;
 
-            newA = (-1)^(constraint-1)*(delta)-m*v;
+            newA = (constraint-1)*(delta)-m*v;
 
             convexProblem.Aineq = [convexProblem.Aineq; newA];
             convexProblem.bineq = [convexProblem.bineq, b];
