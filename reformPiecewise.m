@@ -18,7 +18,7 @@ dpm = [31 28 31 30 31 30 31 31 30 31 30 31];
 
 for monthIndex = 1:n
 
-    for constraint=2
+    for constraint=1:2
         
         x = [0 piecewiseConstraints{constraint}(1,:,monthIndex)];
         y = [0 piecewiseConstraints{constraint}(2,:,monthIndex)];
@@ -32,10 +32,10 @@ for monthIndex = 1:n
         for i=length(k)-(2-constraint):-1:2
 
             % Extract (x1,y1) (x2,y2) from the convex hull info
-            x1 = x(k(i));
-            y1 = y(k(i));
-            x2 = x(k(i-1));
-            y2 = y(k(i-1));
+            x1 = x(k(i-1));
+            y1 = y(k(i-1));
+            x2 = x(k(i));
+            y2 = y(k(i));
 
             % Form the individual linear constraints
             m = (y2-y1) / (x2-x1);
@@ -64,7 +64,7 @@ for monthIndex = 1:n
             delta(months(monthIndex)) = -g;
             delta(n+months(monthIndex)) = g;
 
-            newA = (constraint-1)*(delta)-m*v;
+            newA = (-1)^(constraint-1)*(delta)-m*v;
 
             convexProblem.Aineq = [convexProblem.Aineq; newA];
             convexProblem.bineq = [convexProblem.bineq, b];

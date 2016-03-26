@@ -45,16 +45,16 @@ for k=2:n
     
     % We want to limit the sth volume, which is equivalent to limiting
     % contracts
-    A(end, 1:k-1) = -dpm(months(1:k-1));
-    A(end, n+1:n+k-1) = dpm(months(1:k-1));
+    A(end, 1:k-1) = -g;
+    A(end, n+1:n+k-1) = g;
     
     % Add in the current day worth of injection/withdrawal (first day of
     % the month)
-    A(end, k) = -1;
-    A(end, n+k) = 1;
+    A(end, k) = -g/dpm(k);
+    A(end, n+k) = g/dpm(k);
     
     % Limit this to inventory minimum
-    b(end+1) = (L(months(k-1))-V0)/g;
+    b(end+1) = L(months(k-1))-V0;
 end
 
 % Negate everything since we are inverting the constraint
@@ -73,12 +73,12 @@ beq = [];
 Aeq(end+1,:) = zeros(1,2*n);
 
 % Add up all net contract-days
-Aeq(end, 1:n) = -dpm(months(1:n));
-Aeq(end, n+1:2*n) = dpm(months(1:n));
+Aeq(end, 1:n) = -g;
+Aeq(end, n+1:2*n) = g;
 
 % By doing it this way, we ensure that both boundary conditions are
 % accounted for
-beq(end+1) = (Vn-V0)/g;
+beq(end+1) = (Vn-V0);
 
 % Building Prob struct
 options = optimoptions('linprog','Display','off');
