@@ -50,6 +50,7 @@ for k=2:n
     
     % Add in the current day worth of injection/withdrawal (first day of
     % the month)
+    % This should probably be the max injection available for this day... 
     A(end, k) = -g/dpm(k);
     A(end, n+k) = g/dpm(k);
     
