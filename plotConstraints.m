@@ -5,14 +5,14 @@ dpm = [31 28 31 30 31 30 31 31 30 31 30 31];
 
 for k = 1:length(d)
     for j = 1:dpm(k)
-        v(sum(dpm(1:k-1))+j) = V0+1e4*(dpm(1:k-1)*(e(1:k-1)-d(1:k-1))+j*(e(k)-d(k)));
+        v(sum(dpm(1:k-1))+j) = V0+1e4*(sum(e(1:k-1))-sum(d(1:k-1))+j/dpm(k)*(e(k)-d(k)));
     end
 end
 
 vd(1) = (v(dpm(1))-V0)/dpm(1);
 
 for idx = 2:length(d)
-    vd(idx) = (v(sum(dpm(1:idx)))-v(sum(dpm(1:idx-1))))/dpm(idx);
+    vd(idx) = (v(sum(dpm(1:idx)))-v(sum(dpm(1:idx-1))));
 end
 
 figure;

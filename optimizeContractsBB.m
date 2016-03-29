@@ -55,6 +55,9 @@ relaxedProb = reformPiecewise(start, finish, cap, initProb, piecewiseConstraints
 % Begin the stack
 LIST = [relaxedProb];
 
+relaxedProb.Aineq
+relaxedProb.Aeq
+
 % Total interval length is just some modular stuff
 n = mod(finish-start+1,12);
 n(n==0)=12;
@@ -76,7 +79,7 @@ while (~isempty(LIST))
     LIST(:,1) = [];
     
     % Calculate the optimisation to this problem
-    [x_s,~,flag] = linprog(curProblem)
+    [x_s,~,flag] = linprog(curProblem);
     
     % if it cannot be pruned by infeasibility or bound (i.e. is lower than
     % the current best legitimate candidate)

@@ -7,17 +7,18 @@ varlist = {'N','F','i','w','p','q','c','V0','Vn','l'};
 clear(varlist{:});
 
 N = 12;
-F = 3+ceil(abs(5*randn(1,N)))*1e2
-i = abs(500*randn(1,N))
-w = abs(500*randn(1,N))
+F = 3+ceil(abs(5*randn(1,N)))/100;
+F=F'*g;
+i = abs(10000+500*randn(1,N));
+w = abs(10000+500*randn(1,N));
 p = @(x) 0.00;
 q = @(x) 0.01;
 c = 0;
 V0 = 100000*randi(10)*rand(1);
-Vn = ceil(5*rand*V0);
-l = ceil(randi(40,1,N)*(V0+Vn)/200);
+Vn = ceil(2*rand*V0);
+l = ceil(rand(1,N)*(V0+Vn)*0.2);
 
-[d, e, fval] = optimizeContracts(N,F,i,w,q,p,c,V0,Vn,l);
+[d, e, fval] = optimizeContracts(1,12,F,i,w,q,p,c,V0,Vn,l);
 
 %f(v,n) = fval;
 

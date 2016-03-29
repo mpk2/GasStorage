@@ -39,13 +39,22 @@
 %   e:  a vector of length n with positive integer values where d(k) for 
 %       1 <= k <= n indicated the number of contracts delivered by us in
 %       month k (in other words, contracts we sell)
-function [d,e,fval] = optimizeContracts(n, F, I, W, q, p, c, V0, Vn, L)
+function [d,e,fval] = optimizeContracts(start, finish, F, I, W, q, p, c, V0, Vn, L)
 
 format short
 
 % Define g to be a constant number of mmbtu per day associated with each
 % forward contract
 g = 1e4;
+
+% Total interval length is just some modular stuff
+n = mod(finish-start+1,12);
+n(n==0)=12;
+
+% Want to create an array that cycles through 12
+% Do this with mod, going to use 'months' as an index set
+months = mod(start:start+n-1,12);
+months(months==0)=12;
 
 % Number of days in each month!
 dpm = [31 28 31 30 31 30 31 31 30 31 30 31];
@@ -81,7 +90,7 @@ c = [F-g*Q -F-g*P];
 % length(v) = sum(dpm)
 
 % In terms of decision variables, then (j>=1)
-% v(s) = g*( sum( (e(1:k-1)-d(1:k-1)) * dpm(1:k-1) ) + (e(k)-d(k))*j - (e(1)-d(1)) )
+% v(s) = g*( sum( (e(1:k-1)-d(1:k-1)) ) + (e(k)-d(k))*g/dpm(k) - (e(1)-d(1))*g )
 
 A = [];
 b = [];
@@ -89,21 +98,23 @@ b = [];
 % Inventory minimum:
 % -L(k) >= -v(s) where s is defined as above, j=1, k=2:n
 for k=2:n
+    
     % Preallocate an empty row for this constraint
     A(end+1,:) = zeros(1,2*n);
     
     % We want to limit the sth volume, which is equivalent to limiting
     % contracts
-    A(end, 1:k-1) = -dpm(1:k-1);
-    A(end, n+1:n+k-1) = dpm(1:k-1);
+    A(end, 1:k-1) = -g;
+    A(end, n+1:n+k-1) = g;
     
     % Add in the current day worth of injection/withdrawal (first day of
     % the month)
-    A(end, k) = -1;
-    A(end, n+k) = 1;
+    % This should probably be the max injection available for this day... 
+    A(end, k) = -g/dpm(months(k));
+    A(end, n+k) = g/dpm(months(k));
     
     % Limit this to inventory minimum
-    b(end+1) = (L(k-1)-V0)/g;
+    b(end+1) = L(k-1)-V0;
 end
 
 % Negate everything since we are inverting the constraint
@@ -158,26 +169,23 @@ beq = [];
 % Preallocate an empty row for this constraint
 Aeq(end+1,:) = zeros(1,2*n);
 
-% Add up all net contract-days
-Aeq(end, 1:n) = -dpm(1:n);
-Aeq(end, n+1:2*n) = dpm(1:n);
+% Net out the contracts
+Aeq(end, 1:n) = -g;
+Aeq(end, n+1:2*n) = g;
 
 % By doing it this way, we ensure that both boundary conditions are
 % accounted for
-beq(end+1) = (Vn-V0)/g;
+Aeq(end,:);
+beq(end+1) = (Vn-V0);
 
 % Optimise, setting the lower bound to all zeros and upper bound to inf
 %[x fval] = intlinprog(-c, 1:2*n, A, b, Aeq, beq, [d e], inf*ones(1,2*n));
 [x, fval] = linprog(-c, A, b, Aeq, beq, [d e], inf*ones(1,2*n));
 
-if(~isempty(x))
-    % Break up into d and e
-    d(:) = x(1:n);
-    e(:) = x(n+1:2*n);
-else
-    d=[];
-    e=[];
-end
+% Break up into d and e
+x(x<eps) = 0;
+d(:) = x(1:end/2);
+e(:) = x(end/2+1:end);
 
 fval = -fval;
 
