@@ -1,0 +1,16 @@
+q = @(x) 0;
+p = @(x) 0;
+c = 0.01;
+start = 3;
+finish = 5;
+N = 3;
+F = 3+ceil(abs(5*randn(1,N)))/100;
+g=1e4;
+F=g*F';
+I = [0 1; 9000 9000];
+W = [0 1; 6400 6400];
+V0 = 0;
+Vn = 0;
+cap=1000000;
+L = cap*zeros(1,N);
+[d,e,fval]=optimizeContractsBB(start,finish,F,I,W,q,p,c,V0,Vn,L,cap)
