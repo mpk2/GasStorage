@@ -34,13 +34,13 @@ function subproblems = formSubproblems(start, finish, curProb, splitPoint, month
     
     % We want to limit the sth volume, which is equivalent to limiting
     % contracts
-    A(end, months(1:monthIndex-1)) = -g;
-    A(end, n+months(1:monthIndex-1)) = g;
+    A(end, 1:monthIndex-1) = -g;
+    A(end, n+(1:monthIndex-1)) = g;
     
     % Add in the current day worth of injection/withdrawal (first day of
     % the month)
-    A(end, months(monthIndex)) = -g/dpm(months(monthIndex));
-    A(end, n+months(monthIndex)) = g/dpm(months(monthIndex));
+    A(end, monthIndex) = -g/dpm(months(monthIndex));
+    A(end, n+monthIndex) = g/dpm(months(monthIndex));
 
     % Adding A to both subproblems
     subProbl.Aineq = A;

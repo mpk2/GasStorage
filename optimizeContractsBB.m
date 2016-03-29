@@ -94,12 +94,12 @@ while (~isempty(LIST))
         
         for monthIndex=1:n
            relevantConstraints{monthIndex} = ...
-               piecewiseConstraints{1 + (delta{months(monthIndex)}(2) < 0)}(:,:,months(monthIndex));
-           delta{months(monthIndex)}(2) = abs(delta{months(monthIndex)}(2)); 
+               piecewiseConstraints{1 + (delta{monthIndex}(2) < 0)}(:,:,monthIndex);
+           delta{monthIndex}(2) = abs(delta{monthIndex}(2)); 
         end 
         
         % Check against piecewise constraints
-        [valid, invalidMonthIndex] = checkConstraints(start, finish, delta, relevantConstraints);
+        [valid, invalidMonthIndex] = checkConstraints(delta, relevantConstraints);
         
         % If it satisfied the constraints (and is greater from before)
         if(valid)
@@ -112,7 +112,7 @@ while (~isempty(LIST))
             % Subdivide the initial problem into two on either side of the point based
             % on the constraint that was violated (I or W, then which
             % segment)
-            splitPoint = delta{months(invalidMonthIndex)};
+            splitPoint = delta{invalidMonthIndex};
             
             subProblems = formSubproblems(  start, finish, curProblem, ...
                                             splitPoint, ...
@@ -121,23 +121,20 @@ while (~isempty(LIST))
             % breadth first
             % Reform the convex hull of the constraints for each subproblem
             % and add to the list
-            size(curProblem.Aineq)
-            size(subProblems{1}.Aineq)
-            
             % Need to use the splitpoint to re-relax
             [lowerConstraints, upperConstraints] = splitPiecewise(piecewiseConstraints, splitPoint);
             
             lowerProb = reformPiecewise(start, finish, subProblems{1}, lowerConstraints);
             upperProb = reformPiecewise(start, finish, subProblems{2}, upperConstraints);
             LIST = [LIST lowerProb upperProb];
-            size(upperProb.Aineq)
-            '!'  
-            
         end
     end
 end
 
 fval = curOptimal;
- d = x(1:end/2);
- e = x(end/2+1:end);
+
+x(x<eps) = 0;
+d = x(1:end/2);
+e = x(end/2+1:end);
+
 return

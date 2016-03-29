@@ -18,17 +18,7 @@
 %   Example: piecewiseConstraints = {[0 1 1 2 2 3;
 %                                     0 0 1 1 2 2]};
 
-function [valid, invalidConstraint, y] = checkConstraints(start, finish, x, piecewiseConstraints)
-
-% Total interval length is just some modular stuff
-n = mod(finish-start+1,12);
-n(n==0)=12;
-
-% Want to create an array that cycles through 12
-% Do this with mod, going to use 'months' as an index set
-months = mod(start:start+n-1,12);
-months(months==0)=12;
-
+function [valid, invalidConstraint, y] = checkConstraints(x, piecewiseConstraints)
 
 valid = true;
 invalidConstraint = -1;
@@ -36,7 +26,7 @@ y = NaN;
 
 for monthIndex = 1:length(piecewiseConstraints)
     % last constraint x-value that x is greater than
-    xL = find(  x{months(monthIndex)}(1) >= ...
+    xL = find(  x{monthIndex}(1) >= ...
                 piecewiseConstraints{monthIndex}(1,:),1,'Last');
     
     % first constraint x-value that is greater than x
@@ -56,14 +46,14 @@ for monthIndex = 1:length(piecewiseConstraints)
     b = y1 - m*x1; 
     
     % valid if the y-value of the input point, x, is below the constraint
-    valid = x{months(monthIndex)}(2) <= m*x{months(monthIndex)}(1) + b;
+    valid = x{monthIndex}(2) <= m*x{monthIndex}(1) + b;
     
     if ~valid 
         % return the month for which a constraint is violated
         invalidConstraint = monthIndex; 
         
         % return the function value of the violated constraint
-        y = m*x{months(monthIndex)}(1) + b;
+        y = m*x{monthIndex}(1) + b;
         return 
     end
 end

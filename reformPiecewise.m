@@ -1,7 +1,7 @@
 function convexProblem = reformPiecewise(start, finish, initProb, piecewiseConstraints)
 
 convexProblem = initProb;
-
+cap=1e6;
 n = mod(finish-start+1,12);
 n(n==0)=12;
 
@@ -20,16 +20,18 @@ for monthIndex = 1:n
 
     for constraint=1:2
         
-        x = [0 piecewiseConstraints{constraint}(1,:,monthIndex)];
-        y = [0 piecewiseConstraints{constraint}(2,:,monthIndex)];
+        x = [0 piecewiseConstraints{constraint}(1,:,monthIndex) cap];
+        y = [0 piecewiseConstraints{constraint}(2,:,monthIndex) 0];
 
         
         % piecewise constraints are of form [x;y]
         k = convhull(x, y);
-        figure
-        plot(x(k(length(k)-(2-constraint):-1:2)),y(k(length(k)-(2-constraint):-1:2)),'r-',x,y,'b*')
+        %figure
+        %plot(x(k(length(k)-(2-constraint):-1:(1+constraint))),...
+        %    y(k(length(k)-(2-constraint):-1:(1+constraint))),'r-',x,y,'b*')
+        
         % Go through all the segments counterclockwise, except the first one (i=1)
-        for i=length(k)-(2-constraint):-1:2
+        for i=length(k)-(2-constraint):-1:(2+constraint)
 
             % Extract (x1,y1) (x2,y2) from the convex hull info
             x1 = x(k(i-1));
@@ -48,21 +50,21 @@ for monthIndex = 1:n
             % dInventory = delta*X
             % inventory = v*X
             % i(inventory) = mv*X + b [same form for w(inventory)]
-            v(months(1:monthIndex-1)) = -g;
-            v(n+months(1:monthIndex-1)) = g;
+            v(1:monthIndex-1) = -g;
+            v(n+(1:monthIndex-1)) = g;
 
             % Add in the current day worth of injection/withdrawal (first day of
             % the month)
-            v(months(monthIndex)) = -g/dpm(months(monthIndex));
-            v(n+months(monthIndex)) = g/dpm(months(monthIndex));
+            v(monthIndex) = -g/dpm(months(monthIndex));
+            v(n+monthIndex) = g/dpm(months(monthIndex));
 
             % Preallocate an empty row for this injection/withdrawal constraint
             delta = zeros(1,2*n);
 
             % Subtract the delivered contracts from the exercised contracts for
             % this month for injection, reverse for withdrawal
-            delta(months(monthIndex)) = -g;
-            delta(n+months(monthIndex)) = g;
+            delta(monthIndex) = -g;
+            delta(n+monthIndex) = g;
 
             newA = (-1)^(constraint-1)*(delta)-m*v;
 
