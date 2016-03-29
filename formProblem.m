@@ -55,7 +55,7 @@ for k=2:n
     A(end, n+k) = g/dpm(k);
     
     % Limit this to inventory minimum
-    b(end+1) = L(months(k-1))-V0;
+    b(end+1) = L(k-1)-V0;
 end
 
 % Negate everything since we are inverting the constraint

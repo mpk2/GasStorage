@@ -60,9 +60,12 @@ injectionRate = dailyInjectionModel(3,:);
 injectionInterval = dailyInjectionModel(2,:);
     
 I = zeros([2,length(injectionInventoryLevel),n]);
+
+% Go through all of the months
 for i=1:n
       
-    % Create a monthly piecewise for each percentage
+    % Create a monthly piecewise for each percentage discontinuity at the
+    % daily level
     for j=1:length(injectionInventoryLevel)
         
         startingInventory = injectionInventoryLevel(j)*cap;
@@ -77,7 +80,6 @@ for i=1:n
         
         % Calculate the total injection from the complete intervals and
         % then add the partial interval amount
-       
         maxIntervalInjection = injectionInterval .* injectionRate;
         
         if(completeIntervalsIdx < length(injectionRate))
@@ -177,12 +179,15 @@ for i=1:n
         % then add the partial interval amount
         maxIntervalWithdrawal = withdrawalInterval .* withdrawalRate;
         
+        % This means that a complete index interval did occur, so calculate
+        % how many days of total withdrawal that covers
         if(completeIntervalsIdx < length(totalDaysWithdraw(end-j+1,:))+1)
             daysWithdrawnSoFar = totalDaysWithdraw(j,completeIntervalsIdx);
         else
             daysWithdrawnSoFar = 0;
         end
             
+        % Basically, if it hasn't covered ALL intervals, there is partial
         if(completeIntervalsIdx > 1)
             partialIntervalWithdrawal = (dpm(months(i))-daysWithdrawnSoFar) ...
                                         * withdrawalRate(completeIntervalsIdx-1);
@@ -190,7 +195,7 @@ for i=1:n
             partialIntervalWithdrawal = 0;
         end
        
-        
+       
         if(daysWithdrawnSoFar>0)
             maxWithdrawal = sum(maxIntervalWithdrawal(completeIntervalsIdx:j-1))... 
                            + partialIntervalWithdrawal;

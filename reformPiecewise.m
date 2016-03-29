@@ -1,7 +1,6 @@
-function convexProblem = reformPiecewise(start, finish, initProb, piecewiseConstraints)
+function convexProblem = reformPiecewise(start, finish, cap, initProb, piecewiseConstraints)
 
 convexProblem = initProb;
-cap=1e6;
 n = mod(finish-start+1,12);
 n(n==0)=12;
 
@@ -26,9 +25,9 @@ for monthIndex = 1:n
         
         % piecewise constraints are of form [x;y]
         k = convhull(x, y);
-        %figure
-        %plot(x(k(length(k)-(2-constraint):-1:(1+constraint))),...
-        %    y(k(length(k)-(2-constraint):-1:(1+constraint))),'r-',x,y,'b*')
+        figure
+        plot(x(k(length(k)-(2-constraint):-1:(1+constraint))),...
+            y(k(length(k)-(2-constraint):-1:(1+constraint))),'r-',x,y,'b*')
         
         % Go through all the segments counterclockwise, except the first one (i=1)
         for i=length(k)-(2-constraint):-1:(2+constraint)

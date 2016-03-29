@@ -50,7 +50,7 @@ c = initProb.f;
 piecewiseConstraints = dailyToMonthly(start, finish, dailyPiecewiseConstraints, cap);
 
 % Form the convex hull of the constraints
-relaxedProb = reformPiecewise(start, finish, initProb, piecewiseConstraints);
+relaxedProb = reformPiecewise(start, finish, cap, initProb, piecewiseConstraints);
 
 % Begin the stack
 LIST = [relaxedProb];
