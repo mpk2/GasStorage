@@ -50,15 +50,10 @@ c = initProb.f;
 piecewiseConstraints = dailyToMonthly(start, finish, dailyPiecewiseConstraints, cap);
 
 % Form the convex hull of the constraints
-relaxedProb = reformPiecewise(start, finish, cap, initProb, piecewiseConstraints);
+relaxedProb = reformPiecewise(start, finish, cap, V0, initProb, piecewiseConstraints);
 
 % Begin the stack
 LIST = [relaxedProb];
-
-% figure
-% spy(relaxedProb.Aineq)
-% relaxedProb.Aineq 
-% relaxedProb.bineq
 
 % Total interval length is just some modular stuff
 n = mod(finish-start+1,12);
@@ -105,7 +100,7 @@ while (~isempty(LIST))
         
         % Check against piecewise constraints
         [valid, invalidMonthIndex] = checkConstraints(delta, relevantConstraints);
-        
+       
         % If it satisfied the constraints (and is greater from before)
         if(valid)
             curOptimal = c*x_s;
@@ -129,14 +124,14 @@ while (~isempty(LIST))
             % Need to use the splitpoint to re-relax
             [lowerConstraints, upperConstraints] = splitPiecewise(piecewiseConstraints, splitPoint);
             
-            lowerProb = reformPiecewise(start, finish, subProblems{1}, lowerConstraints);
-            upperProb = reformPiecewise(start, finish, subProblems{2}, upperConstraints);
+            lowerProb = reformPiecewise(start, finish, cap, V0, subProblems{1}, lowerConstraints);
+            upperProb = reformPiecewise(start, finish, cap, V0, subProblems{2}, upperConstraints);
             LIST = [LIST lowerProb upperProb];
         end
     end
 end
 
-fval = curOptimal;
+fval = -curOptimal;
 
 x(x<eps) = 0;
 d = x(1:end/2);

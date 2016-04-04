@@ -81,7 +81,7 @@ end
 
 monthlyConstraint = zeros(2,length(injectionInventoryLevel));
     
-I = zeros([2,length(injectionInventoryLevel),n]);
+I = zeros([2,length(injectionInventoryLevel)+1,n]);
 
 % Go through all of the months
 for i=1:n
@@ -124,7 +124,7 @@ for i=1:n
         monthlyConstraint(:,j) = [startingInventory ; maxInjection];
     end
    
-    I(:,:,i) = monthlyConstraint;
+    I(:,:,i) = [monthlyConstraint [cap; 0]];
 end
 
 
@@ -197,7 +197,7 @@ end
 
 monthlyConstraint = zeros(2,length(withdrawalInventoryLevel));
     
-W = zeros([2,length(withdrawalInventoryLevel), n]);
+W = zeros([2,length(withdrawalInventoryLevel)+1, n]);
 
 for i=1:n
       
@@ -256,7 +256,7 @@ for i=1:n
         monthlyConstraint(:,j) = [startingInventory ; maxWithdrawal];
     end
 
-    W(:,:,i) = monthlyConstraint;
+    W(:,:,i) = [[0;0] monthlyConstraint];
 end
 
 

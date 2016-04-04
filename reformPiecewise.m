@@ -1,4 +1,4 @@
-function convexProblem = reformPiecewise(start, finish, cap, initProb, piecewiseConstraints)
+function convexProblem = reformPiecewise(start, finish, cap, V0, initProb, piecewiseConstraints)
 
 convexProblem = initProb;
 n = mod(finish-start+1,12);
@@ -25,11 +25,11 @@ for monthIndex = 1:n
         
         % piecewise constraints are of form [x;y]
         k = convhull(x, y);
-        figure
-        plot(x(k(length(k)-(2-constraint):-1:(1+constraint))),...
-            y(k(length(k)-(2-constraint):-1:(1+constraint))),'r-',x,y,'b*')
+%           figure
+%           plot(x(k(length(k)-(2-constraint):-1:(1+constraint))),...
+%             y(k(length(k)-(2-constraint):-1:(1+constraint))),'r-',x,y,'b*')
         
-        figure
+        %figure
         % Go through all the segments counterclockwise, except the first one (i=1)
         for i=length(k)-(2-constraint):-1:(2+constraint)
 
@@ -43,17 +43,17 @@ for monthIndex = 1:n
             m = (y2-y1) / (x2-x1);
             b = -x1*m+y1;
 
-            xx = linspace(0,1e6,1e6);
-            plot(xx,m*xx+b);
-            ylim([0,4e5])
-            hold on;
+            %xx = linspace(0,1e6,1e6);
+            %plot(xx,m*xx+b);
+            %ylim([0,4e5])
+            %hold on;
             % Preallocate an empty row for this constraint
             v = zeros(1,2*n);
 
             % Basically we have -w(inventory) <= dInventory <= i(inventory)
             % dInventory = delta*X
-            % inventory = v*X
-            % i(inventory) = mv*X + b [same form for w(inventory)]
+            % inventory = v*X + V0
+            % i(inventory) = m(v*X+V0) + b [same form for w(inventory)]
             v(1:monthIndex-1) = -g;
             v(n+(1:monthIndex-1)) = g;
 
@@ -73,8 +73,9 @@ for monthIndex = 1:n
             newA = (-1)^(constraint-1)*(delta)-m*v;
 
             convexProblem.Aineq = [convexProblem.Aineq; newA];
-            convexProblem.bineq = [convexProblem.bineq, b];
+            convexProblem.bineq = [convexProblem.bineq, b+(-1)^(constraint)*(m*V0)];
         end
+        
 
     end
     

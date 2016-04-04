@@ -55,7 +55,7 @@ for k=2:n
     A(end, n+k) = g/dpm(months(k));
     
     % Limit this to inventory minimum
-    b(end+1) = L(k-1)-V0;
+    b(end+1) = V0-L(k);
 end
 
 % Negate everything since we are inverting the constraint
@@ -82,7 +82,7 @@ Aeq(end, n+1:2*n) = g;
 beq(end+1) = (Vn-V0);
 
 % Building Prob struct
-options = optimoptions('linprog','Display','off');
+options = optimoptions('linprog','Display','off','MaxIter', 1e10);
 gasProblem = struct('x0',zeros(1, 2*n),'Aeq',Aeq,'beq',beq,...
     'f',-c','Aineq',A,'bineq',b,'lb',zeros(1, 2*n),'ub',inf*ones(1,2*n),...
     'solver','linprog','options',options);
