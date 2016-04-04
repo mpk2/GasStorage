@@ -159,9 +159,9 @@ for j = 2:length(withdrawalInventoryLevel)
         if(maxDaysForInventoryWithdrawn <= 28)
            
             dailyWithdrawalModel(:,j+k-1:j+k+subIntervals-2) = ...
-                [   (withdrawalInventoryLevel(j)-(28*(1:subIntervals)*withdrawalMaxMMBTU(j))/cap); 
-                    28*ones(1,subIntervals-1) maxDaysForInventoryWithdrawn; 
-                    withdrawalMaxMMBTU(j)*ones(1,subIntervals)];
+                [   withdrawalInventoryLevel(j)-((28*(subIntervals:-1:1)*withdrawalMaxMMBTU(j-1))/cap); 
+                    maxDaysForInventoryWithdrawn 28*ones(1,subIntervals-1); 
+                    withdrawalMaxMMBTU(j-1)*ones(1,subIntervals)];
                 
             k=k+subIntervals;
         end
