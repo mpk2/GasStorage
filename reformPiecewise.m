@@ -29,6 +29,7 @@ for monthIndex = 1:n
         plot(x(k(length(k)-(2-constraint):-1:(1+constraint))),...
             y(k(length(k)-(2-constraint):-1:(1+constraint))),'r-',x,y,'b*')
         
+        %figure
         % Go through all the segments counterclockwise, except the first one (i=1)
         for i=length(k)-(2-constraint):-1:(2+constraint)
 
@@ -42,6 +43,10 @@ for monthIndex = 1:n
             m = (y2-y1) / (x2-x1);
             b = -x1*m+y1;
 
+            %xx = linspace(0,1e6,1e6);
+            %plot(xx,m*xx+b);
+            %ylim([0,4e5])
+            %hold on;
             % Preallocate an empty row for this constraint
             v = zeros(1,2*n);
 

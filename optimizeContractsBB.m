@@ -55,8 +55,10 @@ relaxedProb = reformPiecewise(start, finish, cap, initProb, piecewiseConstraints
 % Begin the stack
 LIST = [relaxedProb];
 
-relaxedProb.Aineq
-relaxedProb.Aeq
+figure
+spy(relaxedProb.Aineq)
+relaxedProb.Aineq 
+relaxedProb.bineq
 
 % Total interval length is just some modular stuff
 n = mod(finish-start+1,12);

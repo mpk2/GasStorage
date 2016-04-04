@@ -19,6 +19,8 @@ dailyInjectionModel = [];
 injectionInventoryLevel = I(1,:);
 injectionMaxMMBTU = I(2,:);
 
+k=0;
+
 for j = 1:length(injectionInventoryLevel)-1
 
     % Convert I(1,:) into
@@ -30,12 +32,35 @@ for j = 1:length(injectionInventoryLevel)-1
     
     % Calculate the number of days it would take at the max injection 
     maxDaysForInventoryAdded = inventoryAdded / injectionMaxMMBTU(j); 
-    dailyInjectionModel(:,j) = [injectionInventoryLevel(j); 
-                                maxDaysForInventoryAdded; 
+    
+    dailyInjectionModel(:,j+k) = [injectionInventoryLevel(j); 
+                                maxDaysForInventoryAdded-(maxDaysForInventoryAdded>28)*(maxDaysForInventoryAdded-28); 
                                 injectionMaxMMBTU(j)];
+                            
+
+    subIntervals = 0;
+    
+    while(maxDaysForInventoryAdded > 28)
+        subIntervals = subIntervals + 1;
+        maxDaysForInventoryAdded = maxDaysForInventoryAdded - 28;
+        
+        if(maxDaysForInventoryAdded <= 28)
+           
+            dailyInjectionModel(:,j+k+1:j+k+subIntervals) = ...
+                [   (injectionInventoryLevel(j)+(28*(1:subIntervals)*injectionMaxMMBTU(j))/cap); 
+                    28*ones(1,subIntervals-1) maxDaysForInventoryAdded; 
+                    injectionMaxMMBTU(j)*ones(1,subIntervals)];
+                
+            k=k+subIntervals;
+        end
+    end
+                         
 end
 
-
+dailyInjectionModel
+injectionRate = [dailyInjectionModel(3,:) 0];
+injectionInterval = [dailyInjectionModel(2,:) 0];
+injectionInventoryLevel = [dailyInjectionModel(1,:) 1];
 totalDays = zeros(length(injectionInventoryLevel)-1);
 
 for j = 1:length(injectionInventoryLevel)
@@ -56,14 +81,12 @@ for j = 1:length(injectionInventoryLevel)
 end
 
 monthlyConstraint = zeros(2,length(injectionInventoryLevel));
-injectionRate = dailyInjectionModel(3,:);
-injectionInterval = dailyInjectionModel(2,:);
     
 I = zeros([2,length(injectionInventoryLevel),n]);
 
 % Go through all of the months
 for i=1:n
-      
+    
     % Create a monthly piecewise for each percentage discontinuity at the
     % daily level
     for j=1:length(injectionInventoryLevel)
@@ -114,28 +137,50 @@ dailyWithdrawalModel = [];
 withdrawalInventoryLevel = W(1,:);
 withdrawalMaxMMBTU = W(2,:);    
 
+k=0;
+
 for j = 1:length(withdrawalInventoryLevel)-1
 
-    % Convert W(1,:) into
-    %
-    % [ 0.2     0.5     0.75    1;      Starting inventory
-    %   10.5    4       8       5;      Max days at withdrawal rate
-    %   10      11      15      20 ]    Withdrawal rate
+    % Convert I(1,:) into
+    % [ 0   0.2     0.5     0.75;       Starting inventory
+    %   7   10.5    4       8   ;       Max days at withdrawal rate
+    %   20  15      10      3]          Withdrawal rate
     
     inventoryWithdrawn = (withdrawalInventoryLevel(j+1)-withdrawalInventoryLevel(j))*cap;
     
-    % Calculate the number of days it would take at the max injection 
+    % Calculate the number of days it would take at the max withdrawal 
     maxDaysForInventoryWithdrawn = inventoryWithdrawn / withdrawalMaxMMBTU(j); 
-    dailyWithdrawalModel(:,j) = [   withdrawalInventoryLevel(j); 
-                                    maxDaysForInventoryWithdrawn; 
-                                    withdrawalMaxMMBTU(j)];
+    
+    dailyWithdrawalModel(:,j+k) = [withdrawalInventoryLevel(j); 
+                                maxDaysForInventoryWithdrawn-(maxDaysForInventoryWithdrawn>28)*(maxDaysForInventoryWithdrawn-28); 
+                                withdrawalMaxMMBTU(j)];
+                            
 
+    subIntervals = 0;
+    
+    while(maxDaysForInventoryWithdrawn > 28)
+        subIntervals = subIntervals + 1;
+        maxDaysForInventoryWithdrawn = maxDaysForInventoryWithdrawn - 28;
+        
+        if(maxDaysForInventoryWithdrawn <= 28)
+           
+            dailyWithdrawalModel(:,j+k+1:j+k+subIntervals) = ...
+                [   (withdrawalInventoryLevel(j)+(28*(1:subIntervals)*withdrawalMaxMMBTU(j))/cap); 
+                    28*ones(1,subIntervals-1) maxDaysForInventoryWithdrawn; 
+                    withdrawalMaxMMBTU(j)*ones(1,subIntervals)];
+                
+            k=k+subIntervals;
+        end
+    end
+                            
 end
 
-
-withdrawalRate = dailyWithdrawalModel(3,:);
+dailyWithdrawalModel
+withdrawalRate = [dailyWithdrawalModel(3,:) ;
 withdrawalInterval = dailyWithdrawalModel(2,:);
+withdrawalInventoryLevel = dailyWithdrawalModel(1,:);
 totalDaysWithdraw = [];
+
 
 for j = 1:length(withdrawalInventoryLevel)
     

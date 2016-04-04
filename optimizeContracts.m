@@ -74,7 +74,7 @@ Q = q(F) + c;
 % Objective vector -- this makes it so we optimise F*(d-e)-g*(Q*d-P*e)
 % In other words, we optimise (gas revenue - gas expenditure - gas
 % injection/withdrawal costs)
-c = [F-g*Q -F-g*P];
+c = [F-g*Q; -F-g*P];
 
 % This is in general helpful for calculations, but it's more helpful
 % perhaps when we need to move into piecewise
@@ -142,7 +142,7 @@ for k = 1:n
     A(end,n+k) = 1;
     
     % Constrain to the constant daily injection limit for that month
-    b(end+1) = I(k)/g;
+    b(end+1) = I(k)*dpm(months(k))/g;
     
     
     % Preallocate an empty row for this withdrawal constraint
@@ -154,7 +154,7 @@ for k = 1:n
     A(end,n+k) = -1;
     
     % Constrain to the constant daily withdrawal limit for that month
-    b(end+1) = W(k)/g;
+    b(end+1) = W(k)*dpm(months(k))/g;
 end
 
 
@@ -188,5 +188,8 @@ d(:) = x(1:end/2);
 e(:) = x(end/2+1:end);
 
 fval = -fval;
+
+figure
+spy(A)
 
 end
