@@ -25,9 +25,9 @@ for monthIndex = 1:n
         
         % piecewise constraints are of form [x;y]
         k = convhull(x, y);
-%           figure
-%           plot(x(k(length(k)-(2-constraint):-1:(1+constraint))),...
-%             y(k(length(k)-(2-constraint):-1:(1+constraint))),'r-',x,y,'b*')
+           figure
+           plot(x(k(length(k)-(2-constraint):-1:(1+constraint))),...
+             y(k(length(k)-(2-constraint):-1:(1+constraint))),'r-',x,y,'b*')
         
         %figure
         % Go through all the segments counterclockwise, except the first one (i=1)
