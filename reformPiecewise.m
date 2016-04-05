@@ -25,9 +25,9 @@ for monthIndex = 1:n
         
         % piecewise constraints are of form [x;y]
         k = convhull(x, y);
-           figure
-           plot(x(k(length(k)-(2-constraint):-1:(1+constraint))),...
-             y(k(length(k)-(2-constraint):-1:(1+constraint))),'r-',x,y,'b*')
+%            figure
+%            plot(x(k(length(k)-(2-constraint):-1:(1+constraint))),...
+%              y(k(length(k)-(2-constraint):-1:(1+constraint))),'r-',x,y,'b*')
         
         %figure
         % Go through all the segments counterclockwise, except the first one (i=1)
@@ -73,7 +73,7 @@ for monthIndex = 1:n
             newA = (-1)^(constraint-1)*(delta)-m*v;
 
             convexProblem.Aineq = [convexProblem.Aineq; newA];
-            convexProblem.bineq = [convexProblem.bineq, b+(-1)^(constraint)*(m*V0)];
+            convexProblem.bineq = [convexProblem.bineq, b+(m*V0)];
         end
         
 

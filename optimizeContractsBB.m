@@ -136,5 +136,5 @@ fval = -curOptimal;
 x(x<eps) = 0;
 d = x(1:end/2);
 e = x(end/2+1:end);
-
+plotVariableConstraints(d,e,piecewiseConstraints,V0,Vn,L,months)
 return
