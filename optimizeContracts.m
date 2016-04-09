@@ -189,7 +189,4 @@ e(:) = x(end/2+1:end);
 
 fval = -fval;
 
-figure
-spy(A)
-
 end

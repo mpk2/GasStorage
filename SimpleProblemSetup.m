@@ -15,7 +15,9 @@ V0 = 100;
 Vn = 100;
 cap=1000000;
 L = cap*zeros(1,N);
-[d,e,fval]=optimizeContractsBB(start,finish,F,I,W,q,p,c,V0,Vn,L,cap)
+U = cap*ones(1,N);
+
+[d,e,fval]=optimizeContractsBB(start,finish,F,I,W,q,p,c,V0,Vn,L,U,cap)
 [d,e,fval]= optimizeContracts(start,finish, F, ...
     I(2,1)*ones(1,N), W(2,1)*ones(1,N), q, p, c, V0, Vn, L)
 

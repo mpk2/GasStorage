@@ -8,6 +8,7 @@ clear(varlist{:});
 
 N = 12;
 F = 3+ceil(abs(5*randn(1,N)))/100;
+g=1e4;
 F=F'*g;
 i = abs(10000+500*randn(1,N));
 w = abs(10000+500*randn(1,N));

@@ -11,8 +11,16 @@ end
 
 vd(1) = (v(dpm(1))-V0)/dpm(1);
 
-for idx = 2:length(d)
-    vd(idx) = (v(sum(dpm(1:idx)))-v(sum(dpm(1:idx-1))));
+for idx = 1:length(d)
+    thisMonth = v(sum(dpm(1:idx)));
+    
+    if(idx>1)
+        monthBefore = v(sum(dpm(1:idx-1)));
+    else 
+        monthBefore = V0;
+    end
+    
+    vd(idx) = (thisMonth-monthBefore)/dpm(idx);
 end
 
 figure;
@@ -32,14 +40,14 @@ legend({'Inventory','End of Month Inventory Minimum','Inventory Minimum','V_0','
 figure;
 title('Injection and Withdrawal Constraints', 'fontsize', 18);
 set(gca,'fontsize',14)
-axis([1, sum(dpm(1:length(d))), -1.75*max(w(1:length(d)).*dpm(1:length(d))), 1.75*max(i(1:length(d)).*dpm(1:length(d)))]);
+axis([1, sum(dpm(1:length(d))), -1.75*max(w(1:length(d))), 1.75*max(i(1:length(d)))]);
 xlabel('Day', 'fontsize', 18)
 ylabel('Change in Inventory (mmbtu/day)','fontsize', 18);
 hold on;
 
 stairs([1 cumsum(dpm(1:length(d)))], [vd vd(end)], 'LineWidth', 2);
-stairs([1 cumsum(dpm(1:length(d)))], [i(1:length(d)).*dpm(1:length(d)) i(length(d))*dpm(length(d))], 'Color', [0 0.5 0], 'LineStyle', '--');
-stairs([1 cumsum(dpm(1:length(d)))], [-w(1:length(d)).*dpm(1:length(d)) -w(length(d))*dpm(length(d))], 'Color', 'red', 'LineStyle', '--');
+stairs([1 cumsum(dpm(1:length(d)))], [i(1:length(d)) i(length(d))], 'Color', [0 0.5 0], 'LineStyle', '--');
+stairs([1 cumsum(dpm(1:length(d)))], [-w(1:length(d)) -w(length(d))], 'Color', 'red', 'LineStyle', '--');
 legend({'dV/dt','Injection maximum','Withdrawal maximum'}, 'Location', 'southeast');
 
 clear;

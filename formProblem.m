@@ -1,4 +1,4 @@
-function gasProblem = formProblem(start, finish, F, q, p, c, V0, Vn, L)
+function gasProblem = formProblem(start, finish, F, q, p, c, V0, Vn, L, U)
 
 n = mod(finish-start+1,12);
 n(n==0)=12;
@@ -56,11 +56,31 @@ for k=2:n
     
     % Limit this to inventory minimum
     b(end+1) = L(k)-V0;
+    
 end
 
 % Negate everything since we are inverting the constraint
 A = -A;
 b = -b;
+
+for k=2:n
+   % Preallocate an empty row for this constraint
+    A(end+1,:) = zeros(1,2*n);
+    
+    % We want to limit the sth volume, which is equivalent to limiting
+    % contracts
+    A(end, 1:k-1) = -g;
+    A(end, n+1:n+k-1) = g;
+    
+    % Add in the current day worth of injection/withdrawal (first day of
+    % the month)
+    % This should probably be the max injection available for this day... 
+    A(end, k) = -g/dpm(months(k));
+    A(end, n+k) = g/dpm(months(k));
+    
+    % Limit this to inventory minimum
+    b(end+1) = U(k)-V0; 
+end
 
 % Set up equality constraints
 Aeq = [];

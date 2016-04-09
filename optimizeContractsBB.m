@@ -34,13 +34,14 @@
 %
 %   cap: a scalar representing the maximal inventory capacity
 %
-function [d, e, fval] = optimizeContractsBB(start, finish, F, I, W, q, p, c, V0, Vn, L, cap)
+function [d, e, fval] = optimizeContractsBB(start, finish, F, I, W, q, p, c, ...
+                                            V0, Vn, L, U, cap)
 
 g=1e4;
 
 % Develop the original problem (without injection or withdrawal
 % constraints)
-initProb = formProblem(start, finish, F, q, p, c, V0, Vn, L);
+initProb = formProblem(start, finish, F, q, p, c, V0, Vn, L, U);
 
 % Save the piecewise constraints
 dailyPiecewiseConstraints = {I, W};
@@ -136,5 +137,5 @@ fval = -curOptimal;
 x(x<eps) = 0;
 d = x(1:end/2);
 e = x(end/2+1:end);
-plotVariableConstraints(d,e,piecewiseConstraints,V0,Vn,L,months)
+plotVariableConstraints(d,e,piecewiseConstraints,V0,Vn,L, U, months,cap)
 return

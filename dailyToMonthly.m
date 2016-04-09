@@ -94,6 +94,7 @@ for i=1:n
         
         maxInjection = 0;
         
+        % Doing in order that months are executed (not calendar order)
         completeIntervalsIdx = find( totalDaysInject(j,:) <= dpm(months(i)) , 1, 'Last');
        
         if(isempty(completeIntervalsIdx)) 
