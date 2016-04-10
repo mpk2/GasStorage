@@ -125,7 +125,7 @@ for i=1:n
         monthlyConstraint(:,j) = [startingInventory ; maxInjection];
     end
    
-    I(:,:,i) = [monthlyConstraint [cap; 0]];
+    I(:,:,i) = [monthlyConstraint [cap;0]];
 end
 
 

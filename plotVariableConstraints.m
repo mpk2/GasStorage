@@ -9,7 +9,7 @@ w=piecewiseConstraints{2};
 
 %% Calculating inventory levels and monthly "derivative" (injection/...)
 for k = 1:length(d)
-    v(k) = V0+1e4*(sum(e(1:k-1))-sum(d(1:k-1))+1/dpm(months(k))*(e(k)-d(k)));
+    v(k) = V0+1e4*(sum(e(1:k-1))-sum(d(1:k-1)));
     injectionMax(k) = i(2,find(i(1,:,k) <= v(k),1, 'Last'),k);
     withdrawalMax(k) = w(2,find(w(1,:,k) >= v(k),1, 'First'),k); 
      

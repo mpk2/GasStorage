@@ -19,19 +19,21 @@ for monthIndex = 1:n
 
     for constraint=1:2
         
-        x = [0 piecewiseConstraints{constraint}(1,:,monthIndex) cap];
-        y = [0 piecewiseConstraints{constraint}(2,:,monthIndex) 0];
+        x = [0 piecewiseConstraints{constraint}(1,:,monthIndex)];
+        y = [-1 piecewiseConstraints{constraint}(2,:,monthIndex)];
 
         
         % piecewise constraints are of form [x;y]
         k = convhull(x, y);
-%            figure
-%            plot(x(k(length(k)-(2-constraint):-1:(1+constraint))),...
-%              y(k(length(k)-(2-constraint):-1:(1+constraint))),'r-',x,y,'b*')
+        k = k(k~=1);
+        
+%        figure
+%         plot(x(k(length(k):-1:1)),...
+%         y(k(length(k):-1:1)),'r-',x,y,'b*')
         
         %figure
         % Go through all the segments counterclockwise, except the first one (i=1)
-        for i=length(k)-(2-constraint):-1:(2+constraint)
+        for i=length(k):-1:2
 
             % Extract (x1,y1) (x2,y2) from the convex hull info
             x1 = x(k(i-1));

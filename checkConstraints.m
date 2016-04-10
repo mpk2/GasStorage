@@ -47,7 +47,7 @@ for monthIndex = 1:length(piecewiseConstraints)
     
     % valid if the y-value of the input point, x, is below the constraint
     valid = x{monthIndex}(2) <= m*x{monthIndex}(1) + b;
-    
+
     if ~valid 
         % return the month for which a constraint is violated
         invalidConstraint = monthIndex; 

@@ -54,7 +54,7 @@ piecewiseConstraints = dailyToMonthly(start, finish, dailyPiecewiseConstraints, 
 relaxedProb = reformPiecewise(start, finish, cap, V0, initProb, piecewiseConstraints);
 
 % Begin the stack
-LIST = [relaxedProb];
+STACK = [relaxedProb];
 
 % Total interval length is just some modular stuff
 n = mod(finish-start+1,12);
@@ -67,17 +67,19 @@ months(months==0)=12;
 
 % Initialise upper bound based on x=zeros
 x = zeros(2*n,1);
-curOptimal = c*x;
+curOptimal = inf;
+
+depth=1;
 
 % Pop off the stack until it's empty
-while (~isempty(LIST))
+while (~isempty(STACK))
     
     % Pull off the first problem 
-    curProblem = LIST(:,1);
-    LIST(:,1) = [];
+    curProblem = STACK(:,1);
+    STACK(:,1) = [];
     
     % Calculate the optimisation to this problem
-    [x_s,~,flag] = linprog(curProblem);
+    [x_s,~,flag] = linprog(curProblem)
     
     % if it cannot be pruned by infeasibility or bound (i.e. is lower than
     % the current best legitimate candidate)
@@ -87,20 +89,22 @@ while (~isempty(LIST))
         % month
         d_s = x_s(1:end/2);
         e_s = x_s(end/2+1:end);
-        delta = [(V0+cumsum(e_s-d_s)*g) (e_s-d_s)*g];
-        delta(:,1) = delta(:,1) - delta(:,2);
-        delta = mat2cell(delta,ones(length(delta),1),2);
+        
+        % Calculate the inventory levels and the change in inventorylevels
+        datapoints = [(V0+cumsum(e_s-d_s)*g) (e_s-d_s)*g];
+        datapoints(:,1) = datapoints(:,1) - datapoints(:,2);
+        datapoints = mat2cell(datapoints,ones(length(datapoints),1),2);
         
         relevantConstraints = {};
         
         for monthIndex=1:n
            relevantConstraints{monthIndex} = ...
-               piecewiseConstraints{1 + (delta{monthIndex}(2) < 0)}(:,:,monthIndex);
-           delta{monthIndex}(2) = abs(delta{monthIndex}(2)); 
+               piecewiseConstraints{1 + (datapoints{monthIndex}(2) < 0)}(:,:,monthIndex);
+           datapoints{monthIndex}(2) = abs(datapoints{monthIndex}(2)); 
         end 
         
         % Check against piecewise constraints
-        [valid, invalidMonthIndex] = checkConstraints(delta, relevantConstraints);
+        [valid, invalidMonthIndex] = checkConstraints(datapoints, relevantConstraints);
        
         % If it satisfied the constraints (and is greater from before)
         if(valid)
@@ -113,7 +117,8 @@ while (~isempty(LIST))
             % Subdivide the initial problem into two on either side of the point based
             % on the constraint that was violated (I or W, then which
             % segment)
-            splitPoint = delta{invalidMonthIndex};
+            depth = depth+1;
+            splitPoint = datapoints{invalidMonthIndex};
             
             subProblems = formSubproblems(  start, finish, curProblem, ...
                                             splitPoint, ...
@@ -127,7 +132,7 @@ while (~isempty(LIST))
             
             lowerProb = reformPiecewise(start, finish, cap, V0, subProblems{1}, lowerConstraints);
             upperProb = reformPiecewise(start, finish, cap, V0, subProblems{2}, upperConstraints);
-            LIST = [LIST lowerProb upperProb];
+            STACK = [STACK lowerProb upperProb];
         end
     end
 end
