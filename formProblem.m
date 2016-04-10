@@ -57,6 +57,7 @@ end
 A = -A;
 b = -b;
 
+% Maximum inventory constraints
 for k=2:n
    % Preallocate an empty row for this constraint
     A(end+1,:) = zeros(1,2*n);

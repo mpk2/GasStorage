@@ -30,7 +30,10 @@
 %   Vn: the final inventory level of the storage at the end of month n
 %
 %   L:  a vector of length n indicating the minimal inventory level of gas
-%       required to be kept during month k (1 <= k <= n)
+%       required to be present at the end of the last day of  month k (1 <= k <= n)
+%
+%   U:  a vector of length n indicating the maximal inventory level of gas
+%       required to be present at the end of the last day of  month k (1 <= k <= n)
 %
 %   cap: a scalar representing the maximal inventory capacity
 %
@@ -142,5 +145,5 @@ fval = -curOptimal;
 x(x<eps) = 0;
 d = x(1:end/2);
 e = x(end/2+1:end);
-plotVariableConstraints(d,e,piecewiseConstraints,V0,Vn,L, U, months,cap)
+plotVariableConstraints(d,e,piecewiseConstraints,V0,Vn,L,U,cap)
 return

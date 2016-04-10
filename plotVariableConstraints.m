@@ -1,3 +1,37 @@
+% This function will plot the inventory and injection/withdrawal curves
+% along with the constraints for those values for a piecewise linear model
+%
+% Inputs:
+%   
+%   d:  a vector of length n with positive integer values where d(k) for 
+%       1 <= k <= n indicated the number of contracts delivered by us in
+%       month k (in other words, contracts we sell)
+%
+%   e:  a vector of length n with positive integer values where d(k) for 
+%       1 <= k <= n indicated the number of contracts delivered by us in
+%       month k (in other words, contracts we sell)
+%
+%   piecewiseConstraints: 
+%       a cell array containing the injection and withdrawal constraints
+%       as three dimensional matrices, indexed by i,j,k where (i,j)
+%       representa a coordinate on the monthly piecewise limits of
+%       (inventory level, max injection/withdrawal) and k is the index of
+%       the current decision variable
+%
+%   V0: the initial inventory level of the storage
+%
+%   Vn: the final inventory level of the storage at the end of month n
+%
+%   L:  a vector of length n indicating the minimal inventory level of gas
+%       required to be present at the end of the last day of  month k (1 <= k <= n)
+%
+%   U:  a vector of length n indicating the maximal inventory level of gas
+%       required to be present at the end of the last day of  month k (1 <= k <= n)
+%
+%   months: a vector where months(k) is the calendar number of the month
+%           represented by variable k (for d_k and e_k)
+%
+%   cap: a scalar representing the maximal inventory capacity in mmbtu
 function plotVariableConstraints(d,e,piecewiseConstraints,V0,Vn,L,U,months,cap)
 
 % Number of days in each month!
@@ -22,7 +56,7 @@ end
 figure;
 plot(0:length(d), [V0 v], 'LineWidth', 2);
 
-title('Minimum Inventory Constraints and Boundary Conditions','fontsize',18)
+title('Inventory Constraints and Boundary Conditions','fontsize',18)
 ylabel('Amount of Natural Gas in Storage (mmbtu)','fontsize',18)
 xlabel('Month','fontsize',18);
 

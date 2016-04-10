@@ -4,7 +4,9 @@
 %
 % Inputs:
 %   
-%   n:  the number of months over which to optimise the contracts
+%   start: the calendar number of the month to start the period
+%
+%   finish: the calender number of the month to end the period
 %
 %   F:  a vector of length n representing the current forward curve for
 %       each month k such that f(k) = forward contract price for month k
@@ -28,7 +30,12 @@
 %   Vn: the final inventory level of the storage at the end of month n
 %
 %   L:  a vector of length n indicating the minimal inventory level of gas
-%       required to be kept during month k (1 <= k <= n)
+%       required to be present at the end of the last day of  month k (1 <= k <= n)
+%
+%   U:  a vector of length n indicating the maximal inventory level of gas
+%       required to be present at the end of the last day of  month k (1 <= k <= n)
+%
+%   cap: a scalar representing the maximal inventory capacity in mmbtu
 %
 % Outputs:
 %
@@ -39,7 +46,7 @@
 %   e:  a vector of length n with positive integer values where d(k) for 
 %       1 <= k <= n indicated the number of contracts delivered by us in
 %       month k (in other words, contracts we sell)
-function [d,e,fval] = optimizeContracts(start, finish, F, I, W, q, p, c, V0, Vn, L)
+function [d,e,fval] = optimizeContracts(start, finish, F, I, W, q, p, c, V0, Vn, L, U, cap)
 
 format short
 
@@ -107,12 +114,6 @@ for k=2:n
     A(end, 1:k-1) = -g;
     A(end, n+1:n+k-1) = g;
     
-    % Add in the current day worth of injection/withdrawal (first day of
-    % the month)
-    % This should probably be the max injection available for this day... 
-    A(end, k) = -g/dpm(months(k));
-    A(end, n+k) = g/dpm(months(k));
-    
     % Limit this to inventory minimum
     b(end+1) = L(k)-V0;
 end
@@ -121,6 +122,19 @@ end
 A = -A;
 b = -b;
 
+% Maximum inventory constraints
+for k=2:n
+   % Preallocate an empty row for this constraint
+    A(end+1,:) = zeros(1,2*n);
+    
+    % We want to limit the sth volume, which is equivalent to limiting
+    % contracts
+    A(end, 1:k-1) = -g;
+    A(end, n+1:n+k-1) = g;
+    
+    % Limit this to inventory minimum
+    b(end+1) = U(k-1)-V0; 
+end
 
 
 % Rate limits:
@@ -188,5 +202,7 @@ d(:) = x(1:end/2);
 e(:) = x(end/2+1:end);
 
 fval = -fval;
+
+plotConstraints(d,e,I,W,V0,Vn,L,U, months, cap);
 
 end
