@@ -39,20 +39,21 @@ dpm = [31 28 31 30 31 30 31 31 30 31 30 31];
 
 for k = 1:length(d)
     for j = 1:dpm(k)
-        v(sum(dpm(1:k-1))+j) = V0+1e4*(sum(e(1:k-1))-sum(d(1:k-1)));
+        v(sum(dpm(1:k-1))+j) = V0+1e4*(sum(e(1:k-1))-sum(d(1:k-1))+j/dpm(months(k))*(e(k)-d(k)));
     end
 end
 
-vd(1) = (v(dpm(1))-V0)/dpm(1);
 
 for idx = 1:length(d)
     thisMonth = v(sum(dpm(1:idx)));
     
     if(idx>1)
         monthBefore = v(sum(dpm(months(1:idx-1))));
-        vd(idx) = (thisMonth-monthBefore)/dpm(months(idx));
+    else
+        monthBefore = V0;
     end
    
+    vd(idx) = (thisMonth-monthBefore)/dpm(months(k));
 end
 
 %% Min and max inventory constraints
@@ -86,7 +87,7 @@ title('Injection and Withdrawal Constraints', 'fontsize', 18);
 set(gca,'fontsize',14)
 
 
-axis([1, sum(dpm(1:length(d))), -1.75*max(w(1:length(d))), 1.75*max(i(1:length(d)))]);
+axis([1, sum(dpm(1:length(d))), -1.25*max(w(1:length(d))), 1.25*max(i(1:length(d)))]);
 xlabel('Day', 'fontsize', 18)
 ylabel('Change in Inventory (mmbtu/day)','fontsize', 18);
 hold on;
