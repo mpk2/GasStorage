@@ -79,7 +79,7 @@ while (~isempty(STACK))
     STACK(:,1) = [];
     
     % Calculate the optimisation to this problem
-    [x_s,~,flag] = linprog(curProblem)
+    [x_s,~,flag] = linprog(curProblem);
     
     % if it cannot be pruned by infeasibility or bound (i.e. is lower than
     % the current best legitimate candidate)
