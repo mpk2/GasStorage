@@ -45,17 +45,13 @@ for k=2:n
     
     % We want to limit the sth volume, which is equivalent to limiting
     % contracts
-    A(end, 1:k-1) = -g;
-    A(end, n+1:n+k-1) = g;
+    A(end, 1:k-1) = g;
+    A(end, n+1:n+k-1) = -g;
     
     % Limit this to inventory minimum
-    b(end+1) = L(k-1)-V0;
+    b(end+1) = V0-L(k-1);
     
 end
-
-% Negate everything since we are inverting the constraint
-A = -A;
-b = -b;
 
 % Maximum inventory constraints
 for k=2:n

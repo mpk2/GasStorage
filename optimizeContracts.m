@@ -169,6 +169,33 @@ for k = 1:n
     
     % Constrain to the constant daily withdrawal limit for that month
     b(end+1) = W(k)*dpm(months(k))/g;
+    
+    
+    % Make sure not to withdraw/inject more than possible
+    %
+    % Preallocate an empty row for this injection constraint
+    A(end+1,:) = zeros(1,2*n);
+    
+    % Subtract the delivered contracts from the exercised contracts for
+    % this month
+    A(end,k) = -1;
+    A(end,n+k) = 1;
+    
+    % Constrain to the amount in inventory
+    b(end+1) = I(k)*dpm(months(k))/g;
+    
+    
+    % Preallocate an empty row for this withdrawal constraint
+    A(end+1,:) = zeros(1,2*n);
+    
+    % Subtract the exercised contracts from the delivered contracts for
+    % this month
+    A(end,k) = 1;
+    A(end,n+k) = -1;
+    
+    % Constrain to the constant daily withdrawal limit for that month
+    b(end+1) = W(k)*dpm(months(k))/g;
+    
 end
 
 

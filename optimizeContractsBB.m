@@ -51,7 +51,7 @@ dailyPiecewiseConstraints = {I, W};
 c = initProb.f;
 
 % Turn these into monthly constraints...
-piecewiseConstraints = dailyToMonthly(start, finish, dailyPiecewiseConstraints, cap);
+piecewiseConstraints = dailyToMonthlyKai(start, finish, dailyPiecewiseConstraints, cap);
 
 % Form the convex hull of the constraints
 relaxedProb = reformPiecewise(start, finish, cap, V0, initProb, piecewiseConstraints);
@@ -71,8 +71,6 @@ months(months==0)=12;
 % Initialise upper bound based on x=zeros
 x = zeros(2*n,1);
 curOptimal = inf;
-
-depth=1;
 
 % Pop off the stack until it's empty
 while (~isempty(STACK))
@@ -102,7 +100,8 @@ while (~isempty(STACK))
         
         for monthIndex=1:n
            relevantConstraints{monthIndex} = ...
-               piecewiseConstraints{1 + (datapoints{monthIndex}(2) < 0)}(:,:,monthIndex);
+               piecewiseConstraints{1 + (datapoints{monthIndex}(2) < 0),monthIndex};
+           
            datapoints{monthIndex}(2) = abs(datapoints{monthIndex}(2)); 
         end 
         
@@ -117,24 +116,22 @@ while (~isempty(STACK))
         % It didn't satisfy constraints and is still greater, branch
         else
             
+            'splitting'
             % Subdivide the initial problem into two on either side of the point based
             % on the constraint that was violated (I or W, then which
             % segment)
-            depth = depth+1;
             splitPoint = datapoints{invalidMonthIndex};
             
-            subProblems = formSubproblems(  start, finish, curProblem, ...
-                                            splitPoint, ...
-                                            invalidMonthIndex);
+            subProblems = formSubproblems(start, finish, curProblem, splitPoint, invalidMonthIndex);
             
             % breadth first
-            % Reform the convex hull of the constraints for each subproblem
-            % and add to the list
+            % Reform the convex hull of the constraints for each subproblem and add to the list
             % Need to use the splitpoint to re-relax
-            [lowerConstraints, upperConstraints] = splitPiecewise(piecewiseConstraints, splitPoint);
+            [lowerConstraints, upperConstraints] = splitPiecewise(piecewiseConstraints, splitPoint, invalidMonthIndex);
             
             lowerProb = reformPiecewise(start, finish, cap, V0, subProblems{1}, lowerConstraints);
             upperProb = reformPiecewise(start, finish, cap, V0, subProblems{2}, upperConstraints);
+            
             STACK = [STACK lowerProb upperProb];
         end
     end

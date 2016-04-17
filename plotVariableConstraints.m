@@ -37,15 +37,17 @@ function plotVariableConstraints(d,e,piecewiseConstraints,V0,Vn,L,U,months,cap)
 % Number of days in each month!
 dpm = [31 28 31 30 31 30 31 31 30 31 30 31];
 
-i=piecewiseConstraints{1};
-w=piecewiseConstraints{2};
+i={piecewiseConstraints{1,:}};
+w={piecewiseConstraints{2,:}};
+
+i{1}
 
 
 %% Calculating inventory levels and monthly "derivative" (injection/...)
 for k = 1:length(d)
     v(k) = V0+1e4*(sum(e(1:k-1))-sum(d(1:k-1)));
-    injectionMax(k) = i(2,find(i(1,:,k) <= v(k),1, 'Last'),k);
-    withdrawalMax(k) = w(2,find(w(1,:,k) >= v(k),1, 'First'),k); 
+    injectionMax(k) = i{k}(2,find(i{k}(1,:) <= v(k),1, 'Last'));
+    withdrawalMax(k) = w{k}(2,find(w{k}(1,:) >= v(k),1, 'First')); 
      
     if(k>1)
         vd(k-1) = v(k)-v(k-1);
@@ -63,7 +65,7 @@ xlabel('Month','fontsize',18);
 lowest = min(L(1:length(d)));
 highest = max([U(1:length(d)) cap]);
 
-axis([0, length(d), lowest-0.1*highest, 1.1*highest]);
+axis([0, length(d), lowest-0.1*highest, 1.5*highest]);
 set(gca,'fontsize',14)
 hold on;
 
@@ -79,13 +81,13 @@ plot(0,V0,'.', 'MarkerSize', 25);
 plot(length(d),Vn,'.', 'MarkerSize', 25);
 legend({'Inventory','End of Month Inventory Minimum','Inventory Minimum',...
         'End of Month Inventory Maximum','Inventory Maximum','V_0','V_n'},...
-        'Location', 'west');
+        'Location', 'northeast');
 
 %% Plotting monthly injection/withdrawal constraints
 figure;
 title('Injection and Withdrawal Constraints', 'fontsize', 18);
 set(gca,'fontsize',14)
-axis([1, length(d), -1.25*max(withdrawalMax), 1.25*max(injectionMax)]);
+axis([1, length(d), -1.25*max(withdrawalMax), 1.5*max(injectionMax)]);
 xlabel('Month', 'fontsize', 18)
 ylabel('Change in Inventory (mmbtu/month)','fontsize', 18);
 hold on;

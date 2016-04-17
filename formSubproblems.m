@@ -36,11 +36,6 @@ function subproblems = formSubproblems(start, finish, curProb, splitPoint, month
     % contracts
     A(end, 1:monthIndex-1) = -g;
     A(end, n+(1:monthIndex-1)) = g;
-    
-    % Add in the current day worth of injection/withdrawal (first day of
-    % the month)
-    A(end, monthIndex) = -g/dpm(months(monthIndex));
-    A(end, n+monthIndex) = g/dpm(months(monthIndex));
 
     % Adding A to both subproblems
     subProbl.Aineq = A;

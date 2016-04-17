@@ -19,8 +19,8 @@ for monthIndex = 1:n
 
     for constraint=1:2
         
-        x = [0 piecewiseConstraints{constraint}(1,:,monthIndex)];
-        y = [-1 piecewiseConstraints{constraint}(2,:,monthIndex)];
+        x = [0 piecewiseConstraints{constraint,monthIndex}(1,:)];
+        y = [-1 piecewiseConstraints{constraint,monthIndex}(2,:)];
 
         
         % piecewise constraints are of form [x;y]
