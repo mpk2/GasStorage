@@ -111,16 +111,13 @@ for k=2:n
     
     % We want to limit the sth volume, which is equivalent to limiting
     % contracts
-    A(end, 1:k-1) = -g;
-    A(end, n+1:n+k-1) = g;
+    A(end, 1:k-1) = g;
+    A(end, n+1:n+k-1) = -g;
     
     % Limit this to inventory minimum
-    b(end+1) = L(k)-V0;
+    b(end+1) = V0-L(k-1);
 end
 
-% Negate everything since we are inverting the constraint
-A = -A;
-b = -b;
 
 % Maximum inventory constraints
 for k=2:n
@@ -169,37 +166,11 @@ for k = 1:n
     
     % Constrain to the constant daily withdrawal limit for that month
     b(end+1) = W(k)*dpm(months(k))/g;
-    
-    
-    % Make sure not to withdraw/inject more than possible
-    %
-    % Preallocate an empty row for this injection constraint
-    A(end+1,:) = zeros(1,2*n);
-    
-    % Subtract the delivered contracts from the exercised contracts for
-    % this month
-    A(end,k) = -1;
-    A(end,n+k) = 1;
-    
-    % Constrain to the amount in inventory
-    b(end+1) = I(k)*dpm(months(k))/g;
-    
-    
-    % Preallocate an empty row for this withdrawal constraint
-    A(end+1,:) = zeros(1,2*n);
-    
-    % Subtract the exercised contracts from the delivered contracts for
-    % this month
-    A(end,k) = 1;
-    A(end,n+k) = -1;
-    
-    % Constrain to the constant daily withdrawal limit for that month
-    b(end+1) = W(k)*dpm(months(k))/g;
-    
+        
 end
 
 
-% Set up equality constraints
+% Set up equality constraintsco
 Aeq = [];
 beq = [];
 
@@ -216,9 +187,10 @@ Aeq(end, n+1:2*n) = g;
 
 % By doing it this way, we ensure that both boundary conditions are
 % accounted for
-Aeq(end,:);
 beq(end+1) = (Vn-V0);
 
+figure
+spy(A)
 % Optimise, setting the lower bound to all zeros and upper bound to inf
 %[x fval] = intlinprog(-c, 1:2*n, A, b, Aeq, beq, [d e], inf*ones(1,2*n));
 [x, fval] = linprog(-c, A, b, Aeq, beq, [d e], inf*ones(1,2*n));

@@ -27,9 +27,9 @@ for monthIndex = 1:n
         k = convhull(x, y);
         k = k(k~=1);
         
-%        figure
-%         plot(x(k(length(k):-1:1)),...
-%         y(k(length(k):-1:1)),'r-',x,y,'b*')
+        %figure
+         %plot(x(k(length(k):-1:1)),...
+         %y(k(length(k):-1:1)),'r-',x,y,'b*')
         
         %figure
         % Go through all the segments counterclockwise, except the first one (i=1)
@@ -58,12 +58,7 @@ for monthIndex = 1:n
             % i(inventory) = m(v*X+V0) + b [same form for w(inventory)]
             v(1:monthIndex-1) = -g;
             v(n+(1:monthIndex-1)) = g;
-
-            % Add in the current day worth of injection/withdrawal (first day of
-            % the month)
-            v(monthIndex) = -g/dpm(months(monthIndex));
-            v(n+monthIndex) = g/dpm(months(monthIndex));
-
+            
             % Preallocate an empty row for this injection/withdrawal constraint
             delta = zeros(1,2*n);
 
@@ -77,7 +72,6 @@ for monthIndex = 1:n
             convexProblem.Aineq = [convexProblem.Aineq; newA];
             convexProblem.bineq = [convexProblem.bineq, b+(m*V0)];
         end
-        
 
     end
     

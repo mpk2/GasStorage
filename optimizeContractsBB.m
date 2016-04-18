@@ -53,8 +53,10 @@ c = initProb.f;
 % Turn these into monthly constraints...
 piecewiseConstraints = dailyToMonthlyKai(start, finish, dailyPiecewiseConstraints, cap);
 
+
 % Form the convex hull of the constraints
 relaxedProb = reformPiecewise(start, finish, cap, V0, initProb, piecewiseConstraints);
+
 
 % Begin the stack
 STACK = [relaxedProb];
@@ -106,8 +108,7 @@ while (~isempty(STACK))
         end 
         
         % Check against piecewise constraints
-        [valid, invalidMonthIndex] = checkConstraints(datapoints, relevantConstraints);
-       
+        [valid, invalidMonthIndex, maxValue] = checkConstraints(datapoints, relevantConstraints);
         % If it satisfied the constraints (and is greater from before)
         if(valid)
             curOptimal = c*x_s;
@@ -120,7 +121,7 @@ while (~isempty(STACK))
             % Subdivide the initial problem into two on either side of the point based
             % on the constraint that was violated (I or W, then which
             % segment)
-            splitPoint = datapoints{invalidMonthIndex};
+            splitPoint = [datapoints{invalidMonthIndex}(1) maxValue];
             
             subProblems = formSubproblems(start, finish, curProblem, splitPoint, invalidMonthIndex);
             

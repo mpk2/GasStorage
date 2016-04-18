@@ -40,23 +40,26 @@ dpm = [31 28 31 30 31 30 31 31 30 31 30 31];
 i={piecewiseConstraints{1,:}};
 w={piecewiseConstraints{2,:}};
 
-i{1}
-
 
 %% Calculating inventory levels and monthly "derivative" (injection/...)
-for k = 1:length(d)
+for k = 1:length(d)+1
     v(k) = V0+1e4*(sum(e(1:k-1))-sum(d(1:k-1)));
-    injectionMax(k) = i{k}(2,find(i{k}(1,:) <= v(k),1, 'Last'));
-    withdrawalMax(k) = w{k}(2,find(w{k}(1,:) >= v(k),1, 'First')); 
-     
+    
+    
+    if(k<=length(d))
+        injectionMax(k) = i{k}(2,find(i{k}(1,:) <= v(k),1, 'Last'))/dpm(months(k));
+        withdrawalMax(k) = w{k}(2,find(w{k}(1,:) >= v(k),1, 'First'))/dpm(months(k)); 
+    end
+    
+    
     if(k>1)
-        vd(k-1) = v(k)-v(k-1);
+        vd(k-1) = (v(k)-v(k-1))/dpm(months(k-1));
     end
 end
 
 %% Plotting min/max inventory constraints
 figure;
-plot(0:length(d), [V0 v], 'LineWidth', 2);
+plot(0:length(d), v, 'LineWidth', 2);
 
 title('Inventory Constraints and Boundary Conditions','fontsize',18)
 ylabel('Amount of Natural Gas in Storage (mmbtu)','fontsize',18)
@@ -92,7 +95,7 @@ xlabel('Month', 'fontsize', 18)
 ylabel('Change in Inventory (mmbtu/month)','fontsize', 18);
 hold on;
 
-stairs(1:length(d), [vd vd(end)],  'LineWidth', 3);
+stairs(1:length(d)+1, [vd vd(end)],  'LineWidth', 3);
 stairs(1:length(d), [injectionMax], 'Color', [0 0.5 0], 'LineStyle', '--', 'LineWidth', 1.5);
 stairs(1:length(d), [-withdrawalMax], 'Color', 'red', 'LineStyle', '--', 'LineWidth', 1.5);
 legend({'dV/dt','Injection maximum','Withdrawal maximum'}, 'Location', 'northeast');

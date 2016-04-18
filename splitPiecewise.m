@@ -17,6 +17,7 @@ for constraint = 1:2
 
             lowerConstraints{constraint, month} = [lower splitPoint'];
             upperConstraints{constraint, month} = [splitPoint' upper];
+            
         else
             lowerConstraints{constraint, month} = oldConstraints{constraint, month};
             upperConstraints{constraint, month} = oldConstraints{constraint, month};

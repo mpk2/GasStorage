@@ -54,7 +54,7 @@ for monthIndex = 1:length(piecewiseConstraints)
         
         % return the function value of the violated constraint
         y = m*x{monthIndex}(1) + b;
-        return 
+        return
     end
 end
 return
