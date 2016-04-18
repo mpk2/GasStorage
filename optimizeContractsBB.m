@@ -37,14 +37,14 @@
 %
 %   cap: a scalar representing the maximal inventory capacity
 %
-function [d, e, fval] = optimizeContractsBB(start, finish, F, I, W, q, p, c, ...
+function [d, e, fval] = optimizeContractsBB(start, finish, F, I, W, q, p, cost, ...
                                             V0, Vn, L, U, cap)
 
 g=1e4;
 
 % Develop the original problem (without injection or withdrawal
 % constraints)
-initProb = formProblem(start, finish, F, q, p, c, V0, Vn, L, U);
+initProb = formProblem(start, finish, F, q, p, cost, V0, Vn, L, U);
 
 % Save the piecewise constraints
 dailyPiecewiseConstraints = {I, W};
@@ -86,7 +86,7 @@ while (~isempty(STACK))
     
     % if it cannot be pruned by infeasibility or bound (i.e. is lower than
     % the current best legitimate candidate)
-    if (~isempty(x_s) && c*x_s < curOptimal && flag == 1)
+    if (~isempty(x_s) && c'*x_s < curOptimal && flag == 1)
         
         % Need to create cell array of inventory vs injection for each
         % month
@@ -109,15 +109,14 @@ while (~isempty(STACK))
         
         % Check against piecewise constraints
         [valid, invalidMonthIndex, maxValue] = checkConstraints(datapoints, relevantConstraints);
+        
         % If it satisfied the constraints (and is greater from before)
         if(valid)
-            curOptimal = c*x_s;
+            curOptimal = c'*x_s;
             x = x_s;
             
         % It didn't satisfy constraints and is still greater, branch
         else
-            
-            'splitting'
             % Subdivide the initial problem into two on either side of the point based
             % on the constraint that was violated (I or W, then which
             % segment)

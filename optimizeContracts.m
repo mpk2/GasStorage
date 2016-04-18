@@ -75,13 +75,13 @@ d = zeros(n,1);
 e = zeros(n,1);
 
 % Set P and Q to be cost vectors including c
-P = p(F) + c;
-Q = q(F) + c;
+P = p(F) + g*c;
+Q = q(F) + g*c;
 
 % Objective vector -- this makes it so we optimise F*(d-e)-g*(Q*d-P*e)
 % In other words, we optimise (gas revenue - gas expenditure - gas
 % injection/withdrawal costs)
-c = [F-g*Q; -F-g*P];
+c = [F-Q; -F-P];
 
 % This is in general helpful for calculations, but it's more helpful
 % perhaps when we need to move into piecewise
@@ -189,8 +189,6 @@ Aeq(end, n+1:2*n) = g;
 % accounted for
 beq(end+1) = (Vn-V0);
 
-figure
-spy(A)
 % Optimise, setting the lower bound to all zeros and upper bound to inf
 %[x fval] = intlinprog(-c, 1:2*n, A, b, Aeq, beq, [d e], inf*ones(1,2*n));
 [x, fval] = linprog(-c, A, b, Aeq, beq, [d e], inf*ones(1,2*n));

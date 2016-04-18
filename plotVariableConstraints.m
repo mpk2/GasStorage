@@ -47,8 +47,8 @@ for k = 1:length(d)+1
     
     
     if(k<=length(d))
-        injectionMax(k) = i{k}(2,find(i{k}(1,:) <= v(k),1, 'Last'))/dpm(months(k));
-        withdrawalMax(k) = w{k}(2,find(w{k}(1,:) >= v(k),1, 'First'))/dpm(months(k)); 
+        injectionMax(k) = i{k}(2,find(i{k}(1,:) - v(k)<= 1e-4 ,1, 'Last'))/dpm(months(k));
+        withdrawalMax(k) = w{k}(2,find(w{k}(1,:) -v(k) >= -1e-4,1, 'First'))/dpm(months(k));
     end
     
     
@@ -90,14 +90,14 @@ legend({'Inventory','End of Month Inventory Minimum','Inventory Minimum',...
 figure;
 title('Injection and Withdrawal Constraints', 'fontsize', 18);
 set(gca,'fontsize',14)
-axis([1, length(d), -1.25*max(withdrawalMax), 1.5*max(injectionMax)]);
+axis([1, length(d)+1, -1.25*max(withdrawalMax), 1.5*max(injectionMax)]);
 xlabel('Month', 'fontsize', 18)
 ylabel('Change in Inventory (mmbtu/month)','fontsize', 18);
 hold on;
 
 stairs(1:length(d)+1, [vd vd(end)],  'LineWidth', 3);
-stairs(1:length(d), [injectionMax], 'Color', [0 0.5 0], 'LineStyle', '--', 'LineWidth', 1.5);
-stairs(1:length(d), [-withdrawalMax], 'Color', 'red', 'LineStyle', '--', 'LineWidth', 1.5);
+stairs(1:length(d)+1, [injectionMax injectionMax(end)], 'Color', [0 0.5 0], 'LineStyle', '--', 'LineWidth', 1.5);
+stairs(1:length(d)+1, [-withdrawalMax -withdrawalMax(end)], 'Color', 'red', 'LineStyle', '--', 'LineWidth', 1.5);
 legend({'dV/dt','Injection maximum','Withdrawal maximum'}, 'Location', 'northeast');
 
 clear;

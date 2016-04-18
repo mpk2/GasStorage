@@ -1,4 +1,4 @@
-function gasProblem = formProblem(start, finish, F, q, p, c, V0, Vn, L, U)
+function gasProblem = formProblem(start, finish, F, q, p, cost, V0, Vn, L, U)
 
 n = mod(finish-start+1,12);
 n(n==0)=12;
@@ -19,13 +19,13 @@ d = zeros(n,1);
 e = zeros(n,1);
 
 % Set P and Q to be cost vectors including c
-P = p(F) + c;
-Q = q(F) + c;
+P = p(F) + g*cost;
+Q = q(F) + g*cost;
 
-% Objective vector -- this makes it so we optimise F*(d-e)-g*(Q*d-P*e)
+% Objective vector -- this makes it so we optimise F*(d-e)-(Q*d-P*e)
 % In other words, we optimise (gas revenue - gas expenditure - gas
 % injection/withdrawal costs)
-c = [F-g*Q; -F-g*P];
+c = [F-Q; -F-P];
 
 A = [];
 b = [];
@@ -89,7 +89,7 @@ beq(end+1) = (Vn-V0);
 % Building Prob struct
 options = optimoptions('linprog','Display','off');
 gasProblem = struct('x0',zeros(1, 2*n),'Aeq',Aeq,'beq',beq,...
-    'f',-c','Aineq',A,'bineq',b,'lb',zeros(1, 2*n),'ub',inf*ones(1,2*n),...
+    'f',-c,'Aineq',A,'bineq',b,'lb',zeros(1, 2*n),'ub',inf*ones(1,2*n),...
     'solver','linprog','options',options);
 
 end

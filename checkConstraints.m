@@ -26,7 +26,7 @@ y = NaN;
 
 for monthIndex = 1:length(piecewiseConstraints)
     % last constraint x-value that x is greater than
-    xL = find(  x{monthIndex}(1) >= ...
+    xL = find(  x{monthIndex}(1) > ...
                 piecewiseConstraints{monthIndex}(1,:),1,'Last');
     
     % first constraint x-value that is greater than x
@@ -46,7 +46,7 @@ for monthIndex = 1:length(piecewiseConstraints)
     b = y1 - m*x1; 
     
     % valid if the y-value of the input point, x, is below the constraint
-    valid = x{monthIndex}(2) <= m*x{monthIndex}(1) + b;
+    valid = x{monthIndex}(2) - (m*x{monthIndex}(1) + b) <= 1e-4;
 
     if ~valid 
         % return the month for which a constraint is violated
